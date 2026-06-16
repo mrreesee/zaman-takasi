@@ -1,0 +1,89 @@
+@page "/bookings"
+@inject ApiClient Api
+@inject AuthState Auth
+
+<PageTitle>Rezervasyonlarım</PageTitle>
+<h1>Rezervasyonlarım</h1>
+
+@if (!ready)
+{
+    <p>Yükleniyor…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <div class="alert alert-warning">Bu sayfa için <a href="login">giriş</a> gerekli.</div>
+}
+else
+{
+    <h3>Gelen (hizmeti ben sağlıyorum)</h3>
+    @RenderTable(incoming, asProvider: true)
+
+    <h3 class="mt-4">Giden (hizmeti ben alıyorum)</h3>
+    @RenderTable(outgoing, asProvider: false)
+}
+
+@if (err is not null) { <div class="alert alert-danger">@err</div> }
+
+@code {
+    private bool ready;
+    private string? err;
+    private List<BookingDto> incoming = new();
+    private List<BookingDto> outgoing = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.EnsureLoadedAsync();
+        if (Auth.IsAuthenticated) await Load();
+        ready = true;
+    }
+
+    private async Task Load()
+    {
+        try
+        {
+            var all = await Api.MyBookingsAsync() ?? new();
+            incoming = all.Where(b => b.ProviderUserId == Auth.UserId).ToList();
+            outgoing = all.Where(b => b.RequesterUserId == Auth.UserId).ToList();
+        }
+        catch (ApiException ex) { err = ex.Message; }
+    }
+
+    private RenderFragment RenderTable(List<BookingDto> items, bool asProvider) => @<table class="table">
+        <thead><tr><th>Saat</th><th>ZK</th><th>Durum</th><th>İşlem</th></tr></thead>
+        <tbody>
+            @if (items.Count == 0)
+            {
+                <tr><td colspan="4" class="text-muted">Kayıt yok.</td></tr>
+            }
+            @foreach (var b in items)
+            {
+                <tr>
+                    <td>@b.Hours</td>
+                    <td>@b.CreditCost</td>
+                    <td>@b.Status</td>
+                    <td>
+                        @if (asProvider && b.Status == BookingStatus.Pending)
+                        {
+                            <button class="btn btn-sm btn-primary me-1" @onclick="() => Do(() => Api.AcceptAsync(b.Id))">Kabul et</button>
+                        }
+                        @if (asProvider && b.Status == BookingStatus.Accepted)
+                        {
+                            <button class="btn btn-sm btn-success me-1" @onclick="() => Do(() => Api.CompleteAsync(b.Id))">Tamamla</button>
+                        }
+                        @if (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Accepted)
+                        {
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => Do(() => Api.CancelAsync(b.Id))">İptal</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>;
+
+    private async Task Do(Func<Task<BookingDto?>> action)
+    {
+        err = null;
+        try { await action(); await Load(); }
+        catch (ApiException ex) { err = ex.Message; }
+    }
+}

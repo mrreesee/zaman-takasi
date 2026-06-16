@@ -1,0 +1,80 @@
+@page "/wallet"
+@inject ApiClient Api
+@inject AuthState Auth
+
+<PageTitle>Cüzdan</PageTitle>
+<h1>Cüzdan</h1>
+
+@if (!ready)
+{
+    <p>Yükleniyor…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <div class="alert alert-warning">Bu sayfa için <a href="login">giriş</a> gerekli.</div>
+}
+else
+{
+    <h2 class="mb-3">@balance ZK</h2>
+
+    <div class="mb-3">
+        <div class="input-group" style="max-width:320px">
+            <input type="number" step="1" min="1" class="form-control" @bind="topUp" />
+            <button class="btn btn-outline-secondary" @onclick="AddBalance">Test bakiyesi ekle</button>
+        </div>
+        <small class="text-muted">Kapalı devre test kredisi — nakit değildir, TL'ye çevrilemez.</small>
+    </div>
+
+    <table class="table">
+        <thead><tr><th>Tarih</th><th>Tür</th><th>Tutar (ZK)</th></tr></thead>
+        <tbody>
+            @if (entries.Count == 0)
+            {
+                <tr><td colspan="3" class="text-muted">Henüz işlem yok.</td></tr>
+            }
+            @foreach (var e in entries)
+            {
+                <tr>
+                    <td>@e.CreatedAt.ToLocalTime().ToString("g")</td>
+                    <td>@e.EntryType</td>
+                    <td class="@(e.Amount < 0 ? "text-danger" : "text-success")">@e.Amount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (err is not null) { <div class="alert alert-danger">@err</div> }
+
+@code {
+    private bool ready;
+    private string? err;
+    private decimal balance;
+    private decimal topUp = 10;
+    private List<LedgerEntryDto> entries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.EnsureLoadedAsync();
+        if (Auth.IsAuthenticated) await Load();
+        ready = true;
+    }
+
+    private async Task Load()
+    {
+        try
+        {
+            var w = await Api.GetWalletAsync();
+            balance = w!.Balance;
+            entries = w.Entries.ToList();
+        }
+        catch (ApiException ex) { err = ex.Message; }
+    }
+
+    private async Task AddBalance()
+    {
+        err = null;
+        try { await Api.AddOpeningBalanceAsync(topUp); await Load(); }
+        catch (ApiException ex) { err = ex.Message; }
+    }
+}

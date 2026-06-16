@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ZamanTakasi.Api/ZamanTakasi.Api.csproj" />
+    <Project Path="src/ZamanTakasi.Core/ZamanTakasi.Core.csproj" />
+    <Project Path="src/ZamanTakasi.Infrastructure/ZamanTakasi.Infrastructure.csproj" />
+    <Project Path="src/ZamanTakasi.Shared/ZamanTakasi.Shared.csproj" />
+    <Project Path="src/ZamanTakasi.Web/ZamanTakasi.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ZamanTakasi.Tests/ZamanTakasi.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,63 @@
+@implements IDisposable
+@inject AuthState Auth
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Zaman Takası</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Ana sayfa
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="listings">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> İlanlar
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bookings">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Rezervasyonlarım
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="wallet">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Cüzdan
+            </NavLink>
+        </div>
+
+        @if (Auth.IsAuthenticated)
+        {
+            <div class="nav-item px-3 mt-2 text-light small">@Auth.DisplayName</div>
+            <div class="nav-item px-3">
+                <button class="btn btn-sm btn-outline-light" @onclick="Logout">Çıkış</button>
+            </div>
+        }
+        else
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="login">Giriş / Kayıt</NavLink>
+            </div>
+        }
+    </nav>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.Changed += OnChanged;
+        await Auth.EnsureLoadedAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private async Task Logout() => await Auth.SignOutAsync();
+
+    public void Dispose() => Auth.Changed -= OnChanged;
+}

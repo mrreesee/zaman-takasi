@@ -1,0 +1,121 @@
+@page "/listings"
+@implements IDisposable
+@inject ApiClient Api
+@inject AuthState Auth
+
+<PageTitle>İlanlar</PageTitle>
+<h1>İlanlar</h1>
+
+@if (loading)
+{
+    <p>Yükleniyor…</p>
+}
+else
+{
+    <table class="table align-middle">
+        <thead><tr><th>Başlık</th><th>Sağlayıcı</th><th>Seviye</th><th>ZK/saat</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var l in listings)
+            {
+                <tr>
+                    <td>@l.Title<br /><small class="text-muted">@l.Description</small></td>
+                    <td>@l.ProviderDisplayName</td>
+                    <td>@l.Tier (x@((int)l.Tier))</td>
+                    <td>@l.HourlyCreditRate</td>
+                    <td>
+                        @if (Auth.IsAuthenticated && l.ProviderUserId != Auth.UserId)
+                        {
+                            <div class="input-group input-group-sm" style="max-width:240px">
+                                <input type="number" step="0.5" min="0.5" class="form-control" @bind="hours[l.Id]" />
+                                <button class="btn btn-primary" @onclick="() => Book(l)">Rezerve et</button>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (msg is not null) { <div class="alert alert-success">@msg</div> }
+@if (err is not null) { <div class="alert alert-danger">@err</div> }
+
+@if (Auth.IsAuthenticated)
+{
+    <hr />
+    <h3>Yeni ilan</h3>
+    <div style="max-width:480px">
+        <input class="form-control mb-2" placeholder="Başlık" @bind="newTitle" />
+        <textarea class="form-control mb-2" placeholder="Açıklama" @bind="newDesc"></textarea>
+        <select class="form-select mb-2" @bind="newTier">
+            @foreach (var t in Enum.GetValues<SkillTier>())
+            {
+                <option value="@t">@t (x@((int)t))</option>
+            }
+        </select>
+        <button class="btn btn-success" @onclick="CreateListing">Oluştur</button>
+    </div>
+}
+else
+{
+    <div class="alert alert-secondary">İlan oluşturmak / rezervasyon yapmak için <a href="login">giriş</a> yap.</div>
+}
+
+@code {
+    private List<ListingDto> listings = new();
+    private readonly Dictionary<Guid, decimal> hours = new();
+    private bool loading = true;
+    private string? msg;
+    private string? err;
+
+    private string newTitle = "";
+    private string newDesc = "";
+    private SkillTier newTier = SkillTier.Basic;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.Changed += OnChanged;
+        await Auth.EnsureLoadedAsync();
+        await Load();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private async Task Load()
+    {
+        loading = true;
+        try
+        {
+            listings = await Api.GetListingsAsync() ?? new();
+            foreach (var l in listings) hours.TryAdd(l.Id, 1m);
+        }
+        catch (ApiException ex) { err = ex.Message; }
+        finally { loading = false; }
+    }
+
+    private async Task Book(ListingDto l)
+    {
+        msg = err = null;
+        try
+        {
+            var b = await Api.CreateBookingAsync(new CreateBookingRequest(l.Id, hours[l.Id]));
+            msg = $"Rezervasyon oluşturuldu: {b!.CreditCost} ZK (durum {b.Status}). 'Rezervasyonlarım'dan ilerlet.";
+        }
+        catch (ApiException ex) { err = ex.Message; }
+    }
+
+    private async Task CreateListing()
+    {
+        msg = err = null;
+        try
+        {
+            await Api.CreateListingAsync(new CreateListingRequest(newTitle, newDesc, newTier));
+            newTitle = newDesc = ""; newTier = SkillTier.Basic;
+            await Load();
+            msg = "İlan oluşturuldu.";
+        }
+        catch (ApiException ex) { err = ex.Message; }
+    }
+
+    public void Dispose() => Auth.Changed -= OnChanged;
+}

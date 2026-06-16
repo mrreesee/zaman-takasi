@@ -1,0 +1,37 @@
+@page "/register"
+@inject ApiClient Api
+@inject AuthState Auth
+@inject NavigationManager Nav
+
+<PageTitle>Kayıt</PageTitle>
+<h1>Kayıt ol</h1>
+
+<div style="max-width:420px">
+    <div class="mb-2"><label class="form-label">Görünen ad</label><input class="form-control" @bind="displayName" /></div>
+    <div class="mb-2"><label class="form-label">E-posta</label><input class="form-control" @bind="email" /></div>
+    <div class="mb-2"><label class="form-label">Parola</label><input type="password" class="form-control" @bind="password" /></div>
+    <button class="btn btn-primary" @onclick="Submit" disabled="@busy">Kayıt ol</button>
+    <a class="btn btn-link" href="login">Zaten hesabın var mı? Giriş</a>
+    @if (error is not null) { <div class="alert alert-danger mt-2">@error</div> }
+</div>
+
+@code {
+    private string displayName = "";
+    private string email = "";
+    private string password = "";
+    private string? error;
+    private bool busy;
+
+    private async Task Submit()
+    {
+        error = null; busy = true;
+        try
+        {
+            var resp = await Api.RegisterAsync(new RegisterRequest(email, password, displayName));
+            await Auth.SignInAsync(resp!);
+            Nav.NavigateTo("/listings");
+        }
+        catch (ApiException ex) { error = ex.Message; }
+        finally { busy = false; }
+    }
+}
