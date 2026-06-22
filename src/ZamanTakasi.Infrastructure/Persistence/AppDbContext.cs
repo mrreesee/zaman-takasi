@@ -45,7 +45,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             e.ToTable("Bookings");
             e.HasKey(x => x.Id);
             e.Property(x => x.Status).HasConversion<int>();
-            // decimal: SQLite'ta hassasiyet için TEXT olarak saklanır (yuvarlama kodda banker's).
+            // Postgres numeric(18,2); yuvarlama uygulama katmanında banker's (ToEven).
+            e.Property(x => x.Hours).HasPrecision(18, 2);
+            e.Property(x => x.CreditCost).HasPrecision(18, 2);
             e.HasIndex(x => x.RequesterUserId);
             e.HasIndex(x => x.ProviderUserId);
             e.HasIndex(x => x.Status);
@@ -56,6 +58,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             e.ToTable("LedgerEntries");
             e.HasKey(x => x.Id);
             e.Property(x => x.EntryType).HasConversion<int>();
+            e.Property(x => x.Amount).HasPrecision(18, 2);
             e.HasIndex(x => x.UserId);          // bakiye = UserId'ye göre toplam
             e.HasIndex(x => x.BookingId);
             // Kayıtlar DEĞİŞMEZ: uygulama katmanı asla update/delete yapmaz.

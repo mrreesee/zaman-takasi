@@ -1,19 +1,146 @@
 @page "/"
+@inject AuthState Auth
 
-<PageTitle>Zaman Takası</PageTitle>
+<PageTitle>Zaman Takası — zamanını zamanla takas et</PageTitle>
 
-<h1>Zaman Takası</h1>
-<p class="lead">Yeteneklerini <b>zaman</b> para birimiyle takas et. 1 saat hizmet = 1 zaman kredisi (ZK).</p>
+@* ---------- Koyu hero ---------- *@
+<section class="zk-fullbleed zk-dark">
+    <div class="zk-container">
+        <div class="zk-hero">
+            <div>
+                <span class="zk-pill-tag"><i class="ti ti-sparkles"></i> Para yok, sadece zaman</span>
+                <h1>Zamanını <span class="grad">zamanla</span> takas et.</h1>
+                <p class="zk-hero-lead">
+                    Yeteneğini paylaş, ihtiyacın olanı al. 1 saat hizmet = 1 zaman kredisi.
+                    Adil, şeffaf, kapalı devre bir topluluk pazarı.
+                </p>
+                <div class="zk-hero-btns">
+                    <a class="zk-btn zk-btn-primary" href="@(Auth.IsAuthenticated ? "listings" : "register")">
+                        <i class="ti ti-rocket"></i> Hemen başla
+                    </a>
+                    <a class="zk-btn zk-btn-ghost-dark" href="#nasil-calisir">
+                        <i class="ti ti-player-play"></i> Nasıl çalışır?
+                    </a>
+                </div>
+                <div class="zk-trust">
+                    <div class="zk-stack">
+                        <span style="background:#1fb6d4; color:#04222b;">B</span>
+                        <span style="background:#6a4fd0; color:#fff;">C</span>
+                        <span style="background:#2e9c54; color:#fff;">D</span>
+                        <span style="background:#e0a52e; color:#3a2700;">E</span>
+                        <span style="background:#13263d; color:#cfe0f2; font-size:11px;">+1k</span>
+                    </div>
+                    <div class="zk-trust-txt"><b>1.200+ üye</b> takas yapıyor · <span class="stars">★★★★★</span> <b>4,9</b></div>
+                </div>
+            </div>
 
-<ul>
-    <li><a href="listings">İlanlara göz at / ilan oluştur</a></li>
-    <li><a href="bookings">Rezervasyonlarım</a></li>
-    <li><a href="wallet">Cüzdanım</a></li>
-</ul>
+            <div class="zk-hero-art">
+                <div class="zk-glass zk-glass-1">
+                    <div class="zk-glass-row">
+                        <div class="zk-glass-ic" style="background:rgba(31,182,212,0.18); color:var(--zk-cyan-bright);"><i class="ti ti-code"></i></div>
+                        <div><b>Web geliştirme</b><small>Bob · ★ 4,9</small></div>
+                    </div>
+                    <div class="zk-glass-foot">
+                        <ZkAmount Amount="2" /> <span class="zk-btn zk-btn-primary zk-btn-sm">Rezerve et</span>
+                    </div>
+                </div>
+                <div class="zk-glass zk-glass-2">
+                    <div class="zk-glass-row">
+                        <div class="zk-glass-ic" style="background:rgba(224,165,46,0.18); color:#e0a52e;"><i class="ti ti-palette"></i></div>
+                        <div><b>Logo &amp; marka</b><small>Ceren · ★ 5,0</small></div>
+                    </div>
+                    <div class="zk-glass-foot">
+                        <ZkAmount Amount="3" /> <span class="zk-btn zk-btn-primary zk-btn-sm">Rezerve et</span>
+                    </div>
+                </div>
+                <div class="zk-glass zk-glass-3">
+                    <div class="zk-glass-row">
+                        <div class="zk-glass-ic" style="background:rgba(46,156,84,0.18); color:#4cc878;"><i class="ti ti-language"></i></div>
+                        <div><b>Dil pratiği</b><small>Deniz · ★ 4,7</small></div>
+                    </div>
+                    <div class="zk-glass-foot">
+                        <ZkAmount Amount="1" /> <span class="zk-btn zk-btn-primary zk-btn-sm">Rezerve et</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div class="alert alert-info">
-    Demo hesaplar: <b>alice@@demo.local</b> ve <b>bob@@demo.local</b> — parola <b>Passw0rd!</b>.<br />
-    Akış: giriş → ilan rezerve et → karşı taraf kabul edip tamamlar → cüzdanda kredi hareketi görünür.
-</div>
+@* ---------- Nasıl çalışır ---------- *@
+<section id="nasil-calisir" class="zk-section">
+    <div class="zk-section-head">
+        <span class="zk-eyebrow"><i class="ti ti-route"></i> Nasıl çalışır</span>
+        <h2>Üç adımda takas</h2>
+        <p>Karmaşa yok. Yeteneğini paylaş, krediyi kazan, ihtiyacın olduğunda harca.</p>
+    </div>
+    <div class="zk-steps">
+        <div class="zk-step">
+            <div class="zk-step-num">01</div>
+            <div class="zk-step-badge"><i class="ti ti-user-plus"></i></div>
+            <h3>İlan ver veya keşfet</h3>
+            <p>Sunduğun hizmeti yayınla ya da ihtiyacın olan yeteneği ilanlar arasında bul.</p>
+        </div>
+        <div class="zk-step">
+            <div class="zk-step-num">02</div>
+            <div class="zk-step-badge"><i class="ti ti-calendar-check"></i></div>
+            <h3>Rezerve et</h3>
+            <p>Saat sayısını seç, rezervasyon oluştur. Karşı taraf kabul edince başlar.</p>
+        </div>
+        <div class="zk-step">
+            <div class="zk-step-num">03</div>
+            <div class="zk-step-badge"><i class="ti ti-coin"></i></div>
+            <h3>Tamamla, kredi kazan</h3>
+            <p>Hizmet bitince zaman kredisi cüzdanına geçer. Defter her zaman dengede.</p>
+        </div>
+    </div>
+</section>
 
-<p class="text-muted"><small>Krediler kapalı devredir: nakit/TL'ye çevrilemez (MVP'de kasıtlı hukuki tasarım).</small></p>
+@* ---------- Seviyeler ---------- *@
+<section class="zk-section" style="padding-top:0;">
+    <div class="zk-section-head">
+        <span class="zk-eyebrow"><i class="ti ti-stairs-up"></i> Seviyeler</span>
+        <h2>Uzmanlık çarpanı</h2>
+        <p>Deneyimine göre saat başına kazandığın kredi 1x'ten 3x'e çıkar.</p>
+    </div>
+    <div class="zk-tiers">
+        <div class="zk-tier">
+            <div class="zk-tier-name">Basic</div>
+            <div class="zk-tier-mult">×1</div>
+            <ul>
+                <li><i class="ti ti-check"></i> Yeni başlayanlar için</li>
+                <li><i class="ti ti-check"></i> 1 saat = 1 ZK</li>
+                <li><i class="ti ti-check"></i> Sınırsız ilan</li>
+            </ul>
+            <a class="zk-btn zk-btn-ghost" href="register">Seç</a>
+        </div>
+        <div class="zk-tier featured">
+            <div class="zk-tier-flag">En yaygın</div>
+            <div class="zk-tier-name">Verified</div>
+            <div class="zk-tier-mult">×2</div>
+            <ul>
+                <li><i class="ti ti-check"></i> Doğrulanmış profil</li>
+                <li><i class="ti ti-check"></i> 1 saat = 2 ZK</li>
+                <li><i class="ti ti-check"></i> Öne çıkan rozet</li>
+            </ul>
+            <a class="zk-btn zk-btn-primary" href="register">Seç</a>
+        </div>
+        <div class="zk-tier">
+            <div class="zk-tier-name">Professional</div>
+            <div class="zk-tier-mult">×3</div>
+            <ul>
+                <li><i class="ti ti-check"></i> Kanıtlanmış uzmanlık</li>
+                <li><i class="ti ti-check"></i> 1 saat = 3 ZK</li>
+                <li><i class="ti ti-check"></i> Öncelikli listeleme</li>
+            </ul>
+            <a class="zk-btn zk-btn-ghost" href="register">Seç</a>
+        </div>
+    </div>
+</section>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.EnsureLoadedAsync();
+    }
+}

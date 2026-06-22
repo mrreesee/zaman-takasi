@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zaman Takası — Tasarım Önizleme</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --zk-primary: #0F6E56;
+    --zk-primary-600: #0F6E56;
+    --zk-primary-500: #1D9E75;
+    --zk-primary-50: #E1F5EE;
+    --zk-amber: #854F0B;
+    --zk-amber-50: #FAEEDA;
+    --zk-purple-50: #EEEDFE;
+    --zk-purple-800: #3C3489;
+    --zk-blue-50: #E6F1FB;
+    --zk-blue-700: #185FA5;
+    --zk-pink-50: #FBEAF0;
+    --zk-pink-700: #993556;
+    --zk-text: #1c1b1a;
+    --zk-text-secondary: #5f5e5a;
+    --zk-text-tertiary: #918f88;
+    --zk-bg: #f7f6f2;
+    --zk-surface: #ffffff;
+    --zk-border: rgba(0,0,0,0.10);
+    --zk-border-strong: rgba(0,0,0,0.18);
+    --zk-radius-md: 8px;
+    --zk-radius-lg: 12px;
+    --zk-star: #BA7517;
+    --zk-sidebar: #0c2a23;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--zk-bg);
+    color: var(--zk-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 240px; flex-shrink: 0; background: var(--zk-sidebar); color: #cfe6dd;
+    padding: 18px 14px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px; }
+  .brand-logo { width: 36px; height: 36px; border-radius: 9px; background: var(--zk-primary-500);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 21px; }
+  .brand-name { font-size: 17px; font-weight: 600; color: #fff; }
+  .nav-link { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: var(--zk-radius-md);
+    color: #b4d3c9; text-decoration: none; font-size: 14.5px; font-weight: 500; }
+  .nav-link i { font-size: 20px; }
+  .nav-link.active { background: rgba(255,255,255,0.10); color: #fff; }
+  .nav-link:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
+  .sidebar-user { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px;
+    border-top: 1px solid rgba(255,255,255,0.12); }
+  .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--zk-primary-500);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+
+  .main { flex: 1; min-width: 0; }
+  .topbar { height: 64px; background: var(--zk-surface); border-bottom: 1px solid var(--zk-border);
+    display: flex; align-items: center; gap: 14px; padding: 0 28px; }
+  .search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 9px; height: 40px;
+    background: var(--zk-bg); border: 1px solid var(--zk-border); border-radius: var(--zk-radius-md); padding: 0 13px; }
+  .search i { font-size: 19px; color: var(--zk-text-tertiary); }
+  .search input { border: none; background: transparent; outline: none; font: inherit; font-size: 14px; width: 100%; color: var(--zk-text); }
+  .balance { margin-left: auto; display: flex; align-items: center; gap: 6px; background: var(--zk-amber-50);
+    color: var(--zk-amber); padding: 7px 14px; border-radius: 999px; font-size: 14.5px; font-weight: 600; }
+  .balance i { font-size: 17px; }
+  .icon-btn { width: 40px; height: 40px; border-radius: var(--zk-radius-md); border: 1px solid var(--zk-border);
+    background: var(--zk-surface); display: flex; align-items: center; justify-content: center; color: var(--zk-text-secondary); font-size: 20px; cursor: pointer; }
+
+  .content { padding: 26px 28px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 4px; }
+  h1 { font-size: 24px; font-weight: 600; margin: 0; }
+  .subtitle { color: var(--zk-text-secondary); font-size: 14.5px; margin: 4px 0 20px; }
+  .new-btn { display: inline-flex; align-items: center; gap: 7px; background: var(--zk-primary-600); color: #fff;
+    border: none; padding: 0 16px; height: 40px; border-radius: var(--zk-radius-md); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .new-btn i { font-size: 18px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .card { background: var(--zk-surface); border: 1px solid var(--zk-border); border-radius: var(--zk-radius-lg);
+    padding: 18px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+  .card:hover { border-color: var(--zk-border-strong); transform: translateY(-2px); }
+  .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+  .provider-name { font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+  .provider-meta { display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--zk-text-secondary); }
+  .provider-meta i { font-size: 14px; color: var(--zk-star); }
+  .tier { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .tier i { font-size: 14px; }
+  .tier.verified { background: var(--zk-primary-50); color: var(--zk-primary-600); }
+  .tier.expert { background: var(--zk-purple-50); color: var(--zk-purple-800); }
+  .card-title { font-size: 16px; font-weight: 600; margin: 0 0 5px; }
+  .card-desc { font-size: 13.5px; color: var(--zk-text-secondary); line-height: 1.55; margin: 0 0 16px; flex: 1; }
+  .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .rate { display: flex; align-items: baseline; gap: 3px; }
+  .rate b { font-size: 19px; font-weight: 600; color: var(--zk-amber); }
+  .rate span { font-size: 12.5px; color: var(--zk-text-tertiary); }
+  .book { display: flex; align-items: center; gap: 8px; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--zk-border-strong); border-radius: var(--zk-radius-md); height: 36px; overflow: hidden; }
+  .stepper button { width: 30px; height: 100%; border: none; background: var(--zk-surface); font-size: 17px; color: var(--zk-text-secondary); cursor: pointer; }
+  .stepper button:hover { background: var(--zk-bg); }
+  .stepper .val { width: 36px; text-align: center; font-size: 14px; font-weight: 600; }
+  .book-btn { background: var(--zk-primary-600); color: #fff; border: none; padding: 0 16px; height: 36px;
+    border-radius: var(--zk-radius-md); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .book-btn:hover { background: #0b5a47; }
+
+  .note { margin-top: 24px; font-size: 12.5px; color: var(--zk-text-tertiary); text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="ti ti-clock-hour-4"></i></div>
+      <div class="brand-name">Zaman Takası</div>
+    </div>
+    <a class="nav-link" href="#"><i class="ti ti-home"></i> Ana sayfa</a>
+    <a class="nav-link active" href="#"><i class="ti ti-layout-grid"></i> İlanlar</a>
+    <a class="nav-link" href="#"><i class="ti ti-calendar-event"></i> Rezervasyonlarım</a>
+    <a class="nav-link" href="#"><i class="ti ti-wallet"></i> Cüzdan</a>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">AY</div>
+      <div>
+        <div style="color:#fff; font-size:13.5px; font-weight:600;">Ayşe Y.</div>
+        <div style="font-size:12px; color:#8fb3a8;">Çıkış</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="search"><i class="ti ti-search"></i><input placeholder="Yetenek ara…" /></div>
+      <button class="icon-btn" aria-label="Filtre"><i class="ti ti-adjustments-horizontal"></i></button>
+      <div class="balance"><i class="ti ti-coin"></i> 12,5 ZK</div>
+      <button class="icon-btn" aria-label="Bildirimler"><i class="ti ti-bell"></i></button>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h1>İlanlar</h1>
+          <p class="subtitle">Yeteneklerini zaman kredisiyle takas et — 1 saat = 1 ZK.</p>
+        </div>
+        <button class="new-btn"><i class="ti ti-plus"></i> Yeni ilan</button>
+      </div>
+
+      <div class="grid">
+
+        <div class="card">
+          <div class="card-head">
+            <div class="avatar" style="background:var(--zk-blue-50); color:var(--zk-blue-700);">B</div>
+            <div>
+              <div class="provider-name">Bob</div>
+              <div class="provider-meta"><i class="ti ti-star"></i> 4,9 · 23 takas</div>
+            </div>
+            <span class="tier verified"><i class="ti ti-rosette-discount-check"></i> Verified ×2</span>
+          </div>
+          <div class="card-title">Web sitesi kurulumu</div>
+          <p class="card-desc">Statik veya küçük işletme sitesi kurulumu, alan adı ve yayın dahil.</p>
+          <div class="card-foot">
+            <div class="rate"><b>2 ZK</b><span>/saat</span></div>
+            <div class="book">
+              <div class="stepper"><button>−</button><span class="val">1s</span><button>+</button></div>
+              <button class="book-btn">Rezerve et</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="avatar" style="background:var(--zk-pink-50); color:var(--zk-pink-700);">C</div>
+            <div>
+              <div class="provider-name">Ceren</div>
+              <div class="provider-meta"><i class="ti ti-star"></i> 5,0 · 41 takas</div>
+            </div>
+            <span class="tier expert"><i class="ti ti-award"></i> Expert ×3</span>
+          </div>
+          <div class="card-title">Logo &amp; marka kimliği</div>
+          <p class="card-desc">Logo tasarımı, renk paleti ve temel marka kılavuzu hazırlığı.</p>
+          <div class="card-foot">
+            <div class="rate"><b>3 ZK</b><span>/saat</span></div>
+            <div class="book">
+              <div class="stepper"><button>−</button><span class="val">2s</span><button>+</button></div>
+              <button class="book-btn">Rezerve et</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="avatar" style="background:var(--zk-primary-50); color:var(--zk-primary-600);">D</div>
+            <div>
+              <div class="provider-name">Deniz</div>
+              <div class="provider-meta"><i class="ti ti-star"></i> 4,7 · 12 takas</div>
+            </div>
+            <span class="tier verified"><i class="ti ti-rosette-discount-check"></i> Basic ×1</span>
+          </div>
+          <div class="card-title">İngilizce konuşma pratiği</div>
+          <p class="card-desc">Günlük konuşma ve telaffuz odaklı birebir pratik seansları.</p>
+          <div class="card-foot">
+            <div class="rate"><b>1 ZK</b><span>/saat</span></div>
+            <div class="book">
+              <div class="stepper"><button>−</button><span class="val">1s</span><button>+</button></div>
+              <button class="book-btn">Rezerve et</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="note">Tasarım önizlemesi — gerçek veriler API'den gelecek. Krediler kapalı devredir: nakit/TL'ye çevrilemez.</p>
+    </main>
+  </div>
+</div>
+</body>
+</html>

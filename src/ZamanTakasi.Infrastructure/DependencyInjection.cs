@@ -13,10 +13,9 @@ namespace ZamanTakasi.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config, string connectionString)
     {
-        var conn = config.GetConnectionString("Default") ?? "Data Source=zamantakasi.db";
-        services.AddDbContext<AppDbContext>(o => o.UseSqlite(conn));
+        services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
 
         // JWT kullandığımız için cookie tabanlı AddIdentity yerine AddIdentityCore yeterli.
         services.AddIdentityCore<ApplicationUser>(o =>
@@ -34,6 +33,10 @@ public static class DependencyInjection
         services.AddScoped<ILedgerService, LedgerService>();
         services.AddScoped<IBalanceService, BalanceService>();
         services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IWelcomeBalanceService, WelcomeBalanceService>();
+
+        // Bildirim (stub): gerçek gönderim yok, structured log yazar (bkz. NotificationServiceStub).
+        services.AddScoped<INotificationService, NotificationServiceStub>();
 
         // KAPSAM DIŞI port'lar — stub kayıtları (gerçek implementasyon sonraki aşama).
         services.AddScoped<IPaymentService, PaymentServiceStub>();

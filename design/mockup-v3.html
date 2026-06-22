@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zaman Takası — Sentez tasarım önizleme</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cyan: #1fb6d4;
+    --cyan-bright: #43cfe9;
+    --cyan-dark: #1599b5;
+    --cyan-tint: #e6f7fb;
+    --ink: #0c1a2b;
+    --ink-2: #13263d;
+    --dark-bg: #0a1525;
+    --dark-panel: #122238;
+    --text: #1c2a3a;
+    --muted: #66788f;
+    --on-dark: #eaf1fa;
+    --on-dark-muted: #93a8c4;
+    --bg: #ffffff;
+    --bg-soft: #f5f8fc;
+    --border: #e7edf5;
+    --border-dark: rgba(255,255,255,0.10);
+    --gold: #e0a52e;
+    --gold-tint: #fbf3df;
+    --r-sm: 10px;
+    --r: 14px;
+    --r-lg: 20px;
+    --f: 'Inter', system-ui, sans-serif;
+    --fh: 'Space Grotesk', 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--f); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; line-height: 1.6; }
+  h1,h2,h3,h4 { font-family: var(--fh); margin: 0; color: var(--ink); letter-spacing: -0.02em; font-weight: 700; }
+  a { text-decoration: none; color: inherit; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 26px; }
+  .btn { font-family: var(--f); font-weight: 600; border-radius: var(--r-sm); border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; font-size: 15px; transition: all .15s; }
+  .btn-primary { background: var(--cyan); color: #04222b; padding: 13px 24px; }
+  .btn-primary:hover { background: var(--cyan-bright); transform: translateY(-1px); }
+  .btn-ghost-dark { background: rgba(255,255,255,0.06); color: var(--on-dark); padding: 13px 22px; border: 1px solid var(--border-dark); }
+  .btn-ghost-dark:hover { background: rgba(255,255,255,0.12); }
+  .btn-ghost { background: #fff; color: var(--ink); padding: 12px 22px; border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan-dark); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cyan-dark); }
+
+  /* DARK HERO */
+  .dark { background: var(--dark-bg); color: var(--on-dark); position: relative; overflow: hidden; }
+  .dark::before { content: ""; position: absolute; top: -180px; left: 50%; transform: translateX(-50%); width: 900px; height: 600px; background: radial-gradient(ellipse at center, rgba(31,182,212,0.22), transparent 62%); pointer-events: none; }
+  .dark::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 46px 46px; mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000, transparent 75%); pointer-events: none; }
+  .hnav { position: relative; z-index: 3; display: flex; align-items: center; height: 78px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--fh); font-weight: 700; font-size: 21px; color: #fff; }
+  .logo .mark { width: 38px; height: 38px; border-radius: 11px; background: var(--cyan); color: #04222b; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .hnav-links { display: flex; gap: 30px; margin-left: 46px; font-size: 15px; font-weight: 500; }
+  .hnav-links a { color: #c3d2e6; }
+  .hnav-links a:hover, .hnav-links a.active { color: #fff; }
+  .hnav-cta { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .balance-d { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.07); border: 1px solid var(--border-dark); color: #fff; padding: 8px 15px; border-radius: var(--r-sm); font-weight: 600; font-size: 14px; }
+  .balance-d i { color: var(--gold); font-size: 16px; }
+
+  .hero { position: relative; z-index: 2; display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 48px; align-items: center; padding: 64px 0 96px; }
+  .pill-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(31,182,212,0.12); border: 1px solid rgba(31,182,212,0.30); color: var(--cyan-bright); padding: 7px 14px; border-radius: 50px; font-size: 13px; font-weight: 600; margin-bottom: 24px; }
+  .hero h1 { font-size: 58px; line-height: 1.05; color: #fff; font-weight: 700; }
+  .hero h1 .grad { color: var(--cyan-bright); }
+  .hero .lead { font-size: 19px; color: var(--on-dark-muted); margin: 24px 0 32px; max-width: 500px; }
+  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+  .trust { display: flex; align-items: center; gap: 14px; margin-top: 40px; }
+  .stack { display: flex; }
+  .stack span { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--dark-bg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; margin-left: -10px; font-family: var(--f); }
+  .stack span:first-child { margin-left: 0; }
+  .trust-txt { font-size: 14px; color: var(--on-dark-muted); }
+  .trust-txt b { color: #fff; }
+  .trust-txt .stars { color: var(--gold); }
+
+  .hero-art { position: relative; height: 420px; }
+  .glass { position: absolute; background: rgba(255,255,255,0.05); border: 1px solid var(--border-dark); backdrop-filter: blur(6px); border-radius: var(--r); padding: 16px; width: 230px; }
+  .glass .row { display: flex; align-items: center; gap: 11px; }
+  .glass .ic { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
+  .glass b { font-size: 14.5px; color: #fff; font-weight: 600; display: block; }
+  .glass small { font-size: 12.5px; color: var(--on-dark-muted); }
+  .glass .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--border-dark); }
+  .glass .price { font-family: var(--fh); font-weight: 700; color: var(--gold); font-size: 16px; }
+  .glass .mini-btn { background: var(--cyan); color: #04222b; font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+  .g1 { top: 14px; right: 30px; z-index: 3; }
+  .g2 { top: 150px; left: 0; z-index: 2; }
+  .g3 { bottom: 12px; right: 8px; z-index: 2; }
+
+  /* LIGHT SECTIONS */
+  section.block { padding: 92px 0; }
+  .sec-head { max-width: 640px; margin: 0 auto 56px; text-align: center; }
+  .sec-head h2 { font-size: 40px; margin: 14px 0 14px; }
+  .sec-head p { color: var(--muted); font-size: 17px; margin: 0; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: var(--r-lg); padding: 32px 28px; transition: transform .18s, box-shadow .18s, border-color .18s; }
+  .step:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(12,26,43,0.09); border-color: #d6e6f5; }
+  .step .num { font-family: var(--fh); font-size: 13px; font-weight: 700; color: var(--cyan); letter-spacing: 0.08em; }
+  .step .badge { width: 62px; height: 62px; border-radius: 16px; background: var(--cyan-tint); color: var(--cyan-dark); display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 14px 0 20px; }
+  .step h3 { font-size: 21px; margin-bottom: 9px; }
+  .step p { font-size: 15px; color: var(--muted); margin: 0; }
+
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+  .tier-card { background: #fff; border: 1px solid var(--border); border-radius: var(--r-lg); padding: 34px 28px; display: flex; flex-direction: column; }
+  .tier-card.featured { border: 2px solid var(--cyan); background: linear-gradient(180deg, #f3fcfe, #fff); position: relative; box-shadow: 0 24px 50px rgba(31,182,212,0.12); }
+  .tier-flag { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: #04222b; font-size: 12.5px; font-weight: 700; padding: 6px 16px; border-radius: 50px; }
+  .tier-card .tname { font-weight: 700; font-family: var(--fh); color: var(--ink); font-size: 19px; }
+  .tier-card .mult { font-family: var(--fh); font-size: 50px; font-weight: 700; color: var(--cyan-dark); margin: 10px 0 2px; }
+  .tier-card ul { list-style: none; padding: 0; margin: 20px 0 26px; }
+  .tier-card li { display: flex; align-items: center; gap: 10px; font-size: 15px; padding: 8px 0; }
+  .tier-card li i { color: var(--cyan); font-size: 19px; }
+
+  .app-band { background: var(--bg-soft); }
+  .browser { background: #fff; border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: 0 30px 70px rgba(12,26,43,0.13); }
+  .bbar { display: flex; align-items: center; gap: 7px; padding: 14px 18px; border-bottom: 1px solid var(--border); background: #fbfcfe; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .burl { margin-left: 14px; font-size: 12.5px; color: var(--muted); background: #fff; border: 1px solid var(--border); border-radius: 50px; padding: 6px 16px; }
+  .abody { padding: 28px 30px 34px; }
+  .ahead { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; }
+  .ahead h2 { font-size: 28px; }
+  .ahead p { margin: 5px 0 0; color: var(--muted); font-size: 15px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: var(--r); padding: 20px; display: flex; flex-direction: column; transition: transform .16s, box-shadow .16s, border-color .16s; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 20px 44px rgba(12,26,43,0.10); border-color: #d6e6f5; }
+  .chead { display: flex; align-items: center; gap: 11px; margin-bottom: 15px; }
+  .avatar { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; flex-shrink: 0; }
+  .pname { font-weight: 600; font-size: 15.5px; color: var(--ink); line-height: 1.3; }
+  .pmeta { display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--muted); }
+  .pmeta i { font-size: 14px; color: var(--gold); }
+  .tier-badge { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 6px 11px; border-radius: 50px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .tier-badge i { font-size: 14px; }
+  .tb-verified { background: var(--cyan-tint); color: var(--cyan-dark); }
+  .tb-expert { background: #efeafe; color: #6a4fd0; }
+  .tb-basic { background: #eef3f8; color: var(--ink); }
+  .ctitle { font-size: 18px; margin: 0 0 7px; }
+  .cdesc { font-size: 14.5px; color: var(--muted); line-height: 1.5; margin: 0 0 20px; flex: 1; }
+  .cfoot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .rate { display: flex; align-items: baseline; gap: 4px; }
+  .rate i { color: var(--gold); font-size: 18px; align-self: center; margin-right: 2px; }
+  .rate b { font-family: var(--fh); font-size: 22px; font-weight: 700; color: var(--ink); }
+  .rate span { font-size: 12.5px; color: var(--muted); }
+  .book { display: flex; align-items: center; gap: 9px; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--r-sm); height: 40px; overflow: hidden; }
+  .stepper button { width: 33px; height: 100%; border: none; background: #fff; font-size: 18px; color: var(--muted); cursor: pointer; }
+  .stepper button:hover { background: var(--bg-soft); color: var(--cyan-dark); }
+  .stepper .val { width: 38px; text-align: center; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .book-btn { background: var(--cyan); color: #04222b; border: none; padding: 0 18px; height: 40px; border-radius: var(--r-sm); font-family: var(--f); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .book-btn:hover { background: var(--cyan-bright); }
+
+  /* FOOTER */
+  footer.dark { padding: 64px 0 30px; }
+  .fgrid { position: relative; z-index: 2; display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 36px; }
+  footer .ft p { font-size: 14.5px; color: var(--on-dark-muted); max-width: 290px; margin: 18px 0 0; }
+  footer h4 { color: #fff; font-size: 15px; font-family: var(--f); font-weight: 600; margin: 0 0 16px; }
+  footer ul { list-style: none; padding: 0; margin: 0; }
+  footer li { padding: 7px 0; font-size: 14.5px; color: var(--on-dark-muted); }
+  footer li a:hover { color: var(--cyan-bright); }
+  .fcopy { position: relative; z-index: 2; border-top: 1px solid var(--border-dark); margin-top: 44px; padding-top: 22px; font-size: 13px; color: #7589a6; text-align: center; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-art { display: none; }
+    .hero h1 { font-size: 44px; }
+    .steps, .tiers, .fgrid { grid-template-columns: 1fr; }
+    .hnav-links { display: none; }
+    .sec-head h2 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dark">
+  <div class="wrap">
+    <header class="hnav">
+      <a class="logo"><span class="mark"><i class="ti ti-clock-hour-4"></i></span> Zaman Takası</a>
+      <nav class="hnav-links">
+        <a class="active">Ana sayfa</a><a>İlanlar</a><a>Rezervasyonlarım</a><a>Cüzdan</a>
+      </nav>
+      <div class="hnav-cta">
+        <div class="balance-d"><i class="ti ti-coin"></i> 12,5 ZK</div>
+        <button class="btn btn-primary">Giriş</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <span class="pill-tag"><i class="ti ti-sparkles"></i> Para yok, sadece zaman</span>
+        <h1>Zamanını <span class="grad">zamanla</span> takas et.</h1>
+        <p class="lead">Yeteneğini paylaş, ihtiyacın olanı al. 1 saat hizmet = 1 zaman kredisi. Adil, şeffaf, kapalı devre bir topluluk pazarı.</p>
+        <div class="hero-btns">
+          <button class="btn btn-primary"><i class="ti ti-rocket"></i> Hemen başla</button>
+          <button class="btn btn-ghost-dark"><i class="ti ti-player-play"></i> Nasıl çalışır?</button>
+        </div>
+        <div class="trust">
+          <div class="stack">
+            <span style="background:#1fb6d4; color:#04222b;">B</span>
+            <span style="background:#6a4fd0; color:#fff;">C</span>
+            <span style="background:#2e9c54; color:#fff;">D</span>
+            <span style="background:#e0a52e; color:#3a2700;">E</span>
+            <span style="background:#13263d; color:#cfe0f2; font-size:11px;">+1k</span>
+          </div>
+          <div class="trust-txt"><b>1.200+ üye</b> takas yapıyor · <span class="stars">★★★★★</span> <b>4,9</b></div>
+        </div>
+      </div>
+
+      <div class="hero-art">
+        <div class="glass g1">
+          <div class="row"><div class="ic" style="background:rgba(31,182,212,0.18); color:var(--cyan-bright);"><i class="ti ti-code"></i></div><div><b>Web geliştirme</b><small>Bob · ★ 4,9</small></div></div>
+          <div class="foot"><span class="price">2 ZK / saat</span><span class="mini-btn">Rezerve et</span></div>
+        </div>
+        <div class="glass g2">
+          <div class="row"><div class="ic" style="background:rgba(224,165,46,0.18); color:var(--gold);"><i class="ti ti-palette"></i></div><div><b>Logo & marka</b><small>Ceren · ★ 5,0</small></div></div>
+          <div class="foot"><span class="price">3 ZK / saat</span><span class="mini-btn">Rezerve et</span></div>
+        </div>
+        <div class="glass g3">
+          <div class="row"><div class="ic" style="background:rgba(46,156,84,0.18); color:#4cc878;"><i class="ti ti-language"></i></div><div><b>Dil pratiği</b><small>Deniz · ★ 4,7</small></div></div>
+          <div class="foot"><span class="price">1 ZK / saat</span><span class="mini-btn">Rezerve et</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow"><i class="ti ti-route"></i> Nasıl çalışır</span>
+      <h2>Üç adımda takas</h2>
+      <p>Karmaşa yok. Yeteneğini paylaş, krediyi kazan, ihtiyacın olduğunda harca.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">01</div><div class="badge"><i class="ti ti-user-plus"></i></div><h3>İlan ver veya keşfet</h3><p>Sunduğun hizmeti yayınla ya da ihtiyacın olan yeteneği ilanlar arasında bul.</p></div>
+      <div class="step"><div class="num">02</div><div class="badge"><i class="ti ti-calendar-check"></i></div><h3>Rezerve et</h3><p>Saat sayısını seç, rezervasyon oluştur. Karşı taraf kabul edince başlar.</p></div>
+      <div class="step"><div class="num">03</div><div class="badge"><i class="ti ti-coin"></i></div><h3>Tamamla, kredi kazan</h3><p>Hizmet bitince zaman kredisi cüzdanına geçer. Defter her zaman dengede.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow"><i class="ti ti-stairs-up"></i> Seviyeler</span>
+      <h2>Uzmanlık çarpanı</h2>
+      <p>Deneyimine göre saat başına kazandığın kredi 1x'ten 3x'e çıkar.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier-card">
+        <div class="tname">Basic</div><div class="mult">×1</div>
+        <ul><li><i class="ti ti-check"></i> Yeni başlayanlar için</li><li><i class="ti ti-check"></i> 1 saat = 1 ZK</li><li><i class="ti ti-check"></i> Sınırsız ilan</li></ul>
+        <button class="btn btn-ghost" style="justify-content:center;">Seç</button>
+      </div>
+      <div class="tier-card featured">
+        <div class="tier-flag">En yaygın</div>
+        <div class="tname">Verified</div><div class="mult">×2</div>
+        <ul><li><i class="ti ti-check"></i> Doğrulanmış profil</li><li><i class="ti ti-check"></i> 1 saat = 2 ZK</li><li><i class="ti ti-check"></i> Öne çıkan rozet</li></ul>
+        <button class="btn btn-primary" style="justify-content:center;">Seç</button>
+      </div>
+      <div class="tier-card">
+        <div class="tname">Expert</div><div class="mult">×3</div>
+        <ul><li><i class="ti ti-check"></i> Kanıtlanmış uzmanlık</li><li><i class="ti ti-check"></i> 1 saat = 3 ZK</li><li><i class="ti ti-check"></i> Öncelikli listeleme</li></ul>
+        <button class="btn btn-ghost" style="justify-content:center;">Seç</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block app-band">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow"><i class="ti ti-device-laptop"></i> Uygulama içi</span>
+      <h2>İlanlar ekranı</h2>
+      <p>Aynı tasarım dili uygulama içinde de sürüyor — ferah, kart tabanlı, hızlı.</p>
+    </div>
+    <div class="browser">
+      <div class="bbar">
+        <span class="dot" style="background:#ff5f57;"></span><span class="dot" style="background:#febc2e;"></span><span class="dot" style="background:#28c840;"></span>
+        <span class="burl">zamantakasi.app/ilanlar</span>
+      </div>
+      <div class="abody">
+        <div class="ahead">
+          <div><h2>İlanlar</h2><p>Yeteneğini zaman kredisiyle takas et — 1 saat = 1 ZK.</p></div>
+          <button class="btn btn-primary"><i class="ti ti-plus"></i> Yeni ilan</button>
+        </div>
+        <div class="grid">
+
+          <div class="card">
+            <div class="chead">
+              <div class="avatar" style="background:var(--cyan-tint); color:var(--cyan-dark);">B</div>
+              <div><div class="pname">Bob</div><div class="pmeta"><i class="ti ti-star"></i> 4,9 · 23 takas</div></div>
+              <span class="tier-badge tb-verified"><i class="ti ti-rosette-discount-check"></i> Verified ×2</span>
+            </div>
+            <h3 class="ctitle">Web sitesi kurulumu</h3>
+            <p class="cdesc">Statik veya küçük işletme sitesi kurulumu, alan adı ve yayın dahil.</p>
+            <div class="cfoot">
+              <div class="rate"><i class="ti ti-coin"></i><b>2 ZK</b><span>/saat</span></div>
+              <div class="book"><div class="stepper"><button>−</button><span class="val">1s</span><button>+</button></div><button class="book-btn">Rezerve et</button></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="chead">
+              <div class="avatar" style="background:#efeafe; color:#6a4fd0;">C</div>
+              <div><div class="pname">Ceren</div><div class="pmeta"><i class="ti ti-star"></i> 5,0 · 41 takas</div></div>
+              <span class="tier-badge tb-expert"><i class="ti ti-award"></i> Expert ×3</span>
+            </div>
+            <h3 class="ctitle">Logo &amp; marka kimliği</h3>
+            <p class="cdesc">Logo tasarımı, renk paleti ve temel marka kılavuzu hazırlığı.</p>
+            <div class="cfoot">
+              <div class="rate"><i class="ti ti-coin"></i><b>3 ZK</b><span>/saat</span></div>
+              <div class="book"><div class="stepper"><button>−</button><span class="val">2s</span><button>+</button></div><button class="book-btn">Rezerve et</button></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="chead">
+              <div class="avatar" style="background:#eaf6ee; color:#2e9c54;">D</div>
+              <div><div class="pname">Deniz</div><div class="pmeta"><i class="ti ti-star"></i> 4,7 · 12 takas</div></div>
+              <span class="tier-badge tb-basic"><i class="ti ti-rosette-discount-check"></i> Basic ×1</span>
+            </div>
+            <h3 class="ctitle">İngilizce konuşma pratiği</h3>
+            <p class="cdesc">Günlük konuşma ve telaffuz odaklı birebir pratik seansları.</p>
+            <div class="cfoot">
+              <div class="rate"><i class="ti ti-coin"></i><b>1 ZK</b><span>/saat</span></div>
+              <div class="book"><div class="stepper"><button>−</button><span class="val">1s</span><button>+</button></div><button class="book-btn">Rezerve et</button></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="dark">
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="ft">
+        <a class="logo"><span class="mark"><i class="ti ti-clock-hour-4"></i></span> Zaman Takası</a>
+        <p>Zamanını paraya değil, zamana çeviren topluluk pazarı. Krediler kapalı devredir — nakit/TL'ye çevrilemez.</p>
+      </div>
+      <div><h4>Keşfet</h4><ul><li><a>Ana sayfa</a></li><li><a>İlanlar</a></li><li><a>Nasıl çalışır</a></li><li><a>Seviyeler</a></li></ul></div>
+      <div><h4>Hesap</h4><ul><li><a>Giriş</a></li><li><a>Kayıt ol</a></li><li><a>Cüzdan</a></li><li><a>Rezervasyonlarım</a></li></ul></div>
+      <div><h4>Yasal</h4><ul><li><a>Kullanım koşulları</a></li><li><a>Gizlilik</a></li><li><a>Kredi politikası</a></li></ul></div>
+    </div>
+    <div class="fcopy">© 2026 Zaman Takası — sentez tasarım önizlemesi.</div>
+  </div>
+</footer>
+
+</body>
+</html>

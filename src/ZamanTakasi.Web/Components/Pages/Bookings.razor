@@ -1,13 +1,20 @@
 @page "/bookings"
+@using System.Globalization
 @inject ApiClient Api
 @inject AuthState Auth
 
-<PageTitle>Rezervasyonlarım</PageTitle>
-<h1>Rezervasyonlarım</h1>
+<PageTitle>Rezervasyonlarım — Zaman Takası</PageTitle>
+
+<div class="zk-page-head">
+    <div>
+        <h1>Rezervasyonlarım</h1>
+        <p>Sağladığın ve aldığın hizmetleri buradan yönet.</p>
+    </div>
+</div>
 
 @if (!ready)
 {
-    <p>Yükleniyor…</p>
+    <p style="color:var(--zk-muted);">Yükleniyor…</p>
 }
 else if (!Auth.IsAuthenticated)
 {
@@ -15,16 +22,18 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    <h3>Gelen (hizmeti ben sağlıyorum)</h3>
-    @RenderTable(incoming, asProvider: true)
+    @if (err is not null) { <div class="alert alert-danger zk-mt">@err</div> }
 
-    <h3 class="mt-4">Giden (hizmeti ben alıyorum)</h3>
-    @RenderTable(outgoing, asProvider: false)
+    <h3 class="zk-subhead"><i class="ti ti-arrow-down-left"></i> Gelen — hizmeti ben sağlıyorum</h3>
+    @RenderList(incoming, asProvider: true)
+
+    <h3 class="zk-subhead"><i class="ti ti-arrow-up-right"></i> Giden — hizmeti ben alıyorum</h3>
+    @RenderList(outgoing, asProvider: false)
 }
 
-@if (err is not null) { <div class="alert alert-danger">@err</div> }
-
 @code {
+    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
+
     private bool ready;
     private string? err;
     private List<BookingDto> incoming = new();
@@ -42,43 +51,47 @@ else
         try
         {
             var all = await Api.MyBookingsAsync() ?? new();
-            incoming = all.Where(b => b.ProviderUserId == Auth.UserId).ToList();
-            outgoing = all.Where(b => b.RequesterUserId == Auth.UserId).ToList();
+            incoming = all.Where(b => b.ProviderUserId == Auth.UserId).OrderByDescending(b => b.CreatedAt).ToList();
+            outgoing = all.Where(b => b.RequesterUserId == Auth.UserId).OrderByDescending(b => b.CreatedAt).ToList();
         }
         catch (ApiException ex) { err = ex.Message; }
     }
 
-    private RenderFragment RenderTable(List<BookingDto> items, bool asProvider) => @<table class="table">
-        <thead><tr><th>Saat</th><th>ZK</th><th>Durum</th><th>İşlem</th></tr></thead>
-        <tbody>
-            @if (items.Count == 0)
-            {
-                <tr><td colspan="4" class="text-muted">Kayıt yok.</td></tr>
-            }
+    private RenderFragment RenderList(List<BookingDto> items, bool asProvider) => @<text>
+        @if (items.Count == 0)
+        {
+            <div class="zk-empty">Kayıt yok.</div>
+        }
+        else
+        {
             @foreach (var b in items)
             {
-                <tr>
-                    <td>@b.Hours</td>
-                    <td>@b.CreditCost</td>
-                    <td>@b.Status</td>
-                    <td>
+                <div class="zk-booking-row">
+                    <div class="zk-booking-ic"><i class="ti ti-calendar-event"></i></div>
+                    <div class="zk-booking-main">
+                        <div class="zk-booking-title">@FormatHours(b.Hours) saatlik hizmet</div>
+                        <div class="zk-booking-sub">@b.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", Tr)</div>
+                    </div>
+                    <ZkAmount Amount="b.CreditCost" />
+                    <span class="zk-badge @StatusBadge(b.Status)"><i class="ti @StatusIcon(b.Status)"></i> @StatusName(b.Status)</span>
+                    <div class="zk-booking-actions">
                         @if (asProvider && b.Status == BookingStatus.Pending)
                         {
-                            <button class="btn btn-sm btn-primary me-1" @onclick="() => Do(() => Api.AcceptAsync(b.Id))">Kabul et</button>
+                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Do(() => Api.AcceptAsync(b.Id))">Kabul et</button>
                         }
                         @if (asProvider && b.Status == BookingStatus.Accepted)
                         {
-                            <button class="btn btn-sm btn-success me-1" @onclick="() => Do(() => Api.CompleteAsync(b.Id))">Tamamla</button>
+                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Do(() => Api.CompleteAsync(b.Id))">Tamamla</button>
                         }
                         @if (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Accepted)
                         {
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => Do(() => Api.CancelAsync(b.Id))">İptal</button>
+                            <button class="zk-btn zk-btn-ghost zk-btn-sm" @onclick="() => Do(() => Api.CancelAsync(b.Id))">İptal</button>
                         }
-                    </td>
-                </tr>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>;
+        }
+    </text>;
 
     private async Task Do(Func<Task<BookingDto?>> action)
     {
@@ -86,4 +99,33 @@ else
         try { await action(); await Load(); }
         catch (ApiException ex) { err = ex.Message; }
     }
+
+    private static string FormatHours(decimal h) => h.ToString("0.##", Tr);
+
+    private static string StatusName(BookingStatus s) => s switch
+    {
+        BookingStatus.Pending => "Bekliyor",
+        BookingStatus.Accepted => "Kabul edildi",
+        BookingStatus.Completed => "Tamamlandı",
+        BookingStatus.Cancelled => "İptal edildi",
+        _ => s.ToString()
+    };
+
+    private static string StatusIcon(BookingStatus s) => s switch
+    {
+        BookingStatus.Pending => "ti-clock",
+        BookingStatus.Accepted => "ti-check",
+        BookingStatus.Completed => "ti-circle-check",
+        BookingStatus.Cancelled => "ti-x",
+        _ => "ti-point"
+    };
+
+    private static string StatusBadge(BookingStatus s) => s switch
+    {
+        BookingStatus.Pending => "zk-badge-amber",
+        BookingStatus.Accepted => "zk-badge-cyan",
+        BookingStatus.Completed => "zk-badge-green",
+        BookingStatus.Cancelled => "zk-badge-red",
+        _ => "zk-badge-ink"
+    };
 }

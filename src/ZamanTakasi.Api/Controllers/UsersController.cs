@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ZamanTakasi.Api.Auth;
-using ZamanTakasi.Core.Entities;
-using ZamanTakasi.Core.Enums;
 using ZamanTakasi.Core.Exceptions;
 using ZamanTakasi.Infrastructure.Persistence;
 using ZamanTakasi.Infrastructure.Services;
@@ -35,21 +33,8 @@ public sealed class UsersController : ControllerBase
         return Ok(new UserProfileDto(user.Id, user.DisplayName, user.ReputationScore, user.CreatedAt, balance));
     }
 
-    /// <summary>
-    /// TEST AMAÇLI: açılış bakiyesi yükler (kapalı devre kredi; NAKİT DEĞİL, TL'ye çevrilemez).
-    /// Gerçek ürün akışında kredi yalnızca hizmet kazancından gelir.
-    /// </summary>
-    [HttpPost("me/opening-balance")]
-    public async Task<ActionResult<UserProfileDto>> AddOpeningBalance(OpeningBalanceRequest req)
-    {
-        if (req.Amount <= 0) throw new DomainException("Açılış bakiyesi pozitif olmalı.");
-        var me = User.GetUserId();
-        _db.LedgerEntries.Add(new LedgerEntry(me, req.Amount, LedgerEntryType.OpeningBalance));
-        await _db.SaveChangesAsync();
-
-        var user = await _db.DomainUsers.FirstOrDefaultAsync(u => u.Id == me)
-                   ?? throw new NotFoundException("Kullanıcı bulunamadı.");
-        var balance = await _balances.GetBalanceAsync(me);
-        return Ok(new UserProfileDto(user.Id, user.DisplayName, user.ReputationScore, user.CreatedAt, balance));
-    }
+    // NOT: Eski 'POST me/opening-balance' ucu KALDIRILDI. Kullanıcının kendine kredi basması
+    // (self top-up) bir backdoor'du. Kapalı betada açılış bakiyesi yalnızca kayıt anında, otomatik
+    // ve bir kez verilir (bkz. AuthController.Register -> IWelcomeBalanceService). Krediler kapalı
+    // devredir; nakit/TL ile satın alınamaz.
 }

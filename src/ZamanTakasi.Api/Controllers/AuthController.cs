@@ -5,6 +5,7 @@ using ZamanTakasi.Api.Auth;
 using ZamanTakasi.Core.Entities;
 using ZamanTakasi.Infrastructure.Identity;
 using ZamanTakasi.Infrastructure.Persistence;
+using ZamanTakasi.Infrastructure.Services;
 using ZamanTakasi.Shared;
 
 namespace ZamanTakasi.Api.Controllers;
@@ -16,12 +17,14 @@ public sealed class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _users;
     private readonly AppDbContext _db;
     private readonly JwtTokenService _jwt;
+    private readonly IWelcomeBalanceService _welcome;
 
-    public AuthController(UserManager<ApplicationUser> users, AppDbContext db, JwtTokenService jwt)
+    public AuthController(UserManager<ApplicationUser> users, AppDbContext db, JwtTokenService jwt, IWelcomeBalanceService welcome)
     {
         _users = users;
         _db = db;
         _jwt = jwt;
+        _welcome = welcome;
     }
 
     /// <summary>Yeni kullanıcı: ApplicationUser (kimlik) + domain User (profil) AYNI transaction'da, AYNI Guid Id ile.</summary>
@@ -41,6 +44,11 @@ public sealed class AuthController : ControllerBase
         var domainUser = new User(appUser.Id, req.DisplayName);
         _db.DomainUsers.Add(domainUser);
         await _db.SaveChangesAsync();
+
+        // Cold-start: kayıt anında bir kerelik Hoş Geldin bakiyesi (OpeningBalance LedgerEntry).
+        // Aynı transaction içinde -> kullanıcı ve bakiyesi atomik oluşur.
+        await _welcome.GrantIfFirstTimeAsync(appUser.Id);
+
         await tx.CommitAsync();
 
         var (token, exp) = _jwt.Create(appUser.Id, req.Email, domainUser.DisplayName);

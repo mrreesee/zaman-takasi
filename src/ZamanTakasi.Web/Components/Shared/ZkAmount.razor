@@ -1,0 +1,29 @@
+@* ZK para birimi: "Ƶ" (üzeri çizili Z) coin + tutar. Örn: <ZkAmount Amount="2.5" /> *@
+@using System.Globalization
+
+<span class="zk-amount @SizeClass">
+    <svg width="@CoinSize" height="@CoinSize" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="11" fill="var(--zk-cyan)" />
+        <path d="M8 8 H16 L8 16 H16" stroke="var(--zk-on-cyan)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <path d="M8.6 12 H15.4" stroke="var(--zk-on-cyan)" stroke-width="1.7" stroke-linecap="round" />
+    </svg>
+    <span class="zk-val">@Display@(ShowUnit ? " ZK" : null)</span>
+</span>
+
+@code {
+    [Parameter] public decimal Amount { get; set; }
+
+    /// <summary>"", "lg", "xl"</summary>
+    [Parameter] public string Size { get; set; } = "";
+
+    /// <summary>"ZK" birimini tutarın yanında göster.</summary>
+    [Parameter] public bool ShowUnit { get; set; } = true;
+
+    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
+
+    private string SizeClass => Size;
+
+    private int CoinSize => Size switch { "xl" => 26, "lg" => 20, _ => 18 };
+
+    private string Display => Amount.ToString("0.##", Tr);
+}
