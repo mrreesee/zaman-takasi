@@ -27,6 +27,7 @@ public sealed class ExceptionHandlingMiddleware
             {
                 NotFoundException          => (StatusCodes.Status404NotFound, "Bulunamadı"),
                 ForbiddenActionException   => (StatusCodes.Status403Forbidden, "Yetkisiz işlem"),
+                ConflictException          => (StatusCodes.Status409Conflict, "İşlem çakışması"),
                 InsufficientBalanceException => (StatusCodes.Status400BadRequest, "Yetersiz bakiye"),
                 InvalidBookingTransitionException => (StatusCodes.Status400BadRequest, "Geçersiz durum geçişi"),
                 DomainException            => (StatusCodes.Status400BadRequest, "Geçersiz istek"),
@@ -34,7 +35,10 @@ public sealed class ExceptionHandlingMiddleware
             };
 
             if (status == StatusCodes.Status500InternalServerError)
-                _logger.LogError(ex, "Beklenmeyen hata");
+                _logger.LogError(ex, "Beklenmeyen hata: {Method} {Path}", ctx.Request.Method, ctx.Request.Path);
+            else
+                _logger.LogInformation("İşlenen domain hatası {Status} ({Title}): {Method} {Path} — {Detail}",
+                    status, title, ctx.Request.Method, ctx.Request.Path, ex.Message);
 
             var problem = new ProblemDetails
             {

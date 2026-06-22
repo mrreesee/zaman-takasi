@@ -28,3 +28,12 @@ public sealed class ForbiddenActionException : DomainException
 {
     public ForbiddenActionException(string message) : base(message) { }
 }
+
+/// <summary>
+/// Eşzamanlı işlem çakışması: serializable transaction tekrar denemelere rağmen
+/// çözülemedi (API'de 409'a eşlenir). Çağıran güvenle yeniden deneyebilir.
+/// </summary>
+public sealed class ConflictException : DomainException
+{
+    public ConflictException(string message) : base(message) { }
+}

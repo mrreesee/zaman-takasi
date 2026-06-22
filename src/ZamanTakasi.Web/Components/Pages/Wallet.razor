@@ -27,12 +27,11 @@ else
             <div class="zk-balance-label">Bakiyen</div>
             <ZkAmount Amount="balance" Size="xl" />
         </div>
-        <div>
-            <div class="zk-topup">
-                <input type="number" step="1" min="1" class="form-control" @bind="topUp" />
-                <button class="zk-btn zk-btn-ghost" @onclick="AddBalance"><i class="ti ti-plus"></i> Test bakiyesi ekle</button>
-            </div>
-            <small style="color:var(--zk-muted); display:block; margin-top:6px;">Kapalı devre test kredisi — nakit değildir, TL'ye çevrilemez.</small>
+        <div style="max-width:340px;">
+            <small style="color:var(--zk-muted);">
+                <i class="ti ti-lock"></i> Krediler <b>kapalı devredir</b> — yalnızca hizmet karşılığı
+                kazanılır, nakit/TL ile satın alınamaz. Kayıt olunca bir kerelik hoş geldin bakiyesi tanımlanır.
+            </small>
         </div>
     </div>
 
@@ -69,7 +68,6 @@ else
     private bool ready;
     private string? err;
     private decimal balance;
-    private decimal topUp = 10;
     private List<LedgerEntryDto> entries = new();
 
     protected override async Task OnInitializedAsync()
@@ -87,13 +85,6 @@ else
             balance = w!.Balance;
             entries = w.Entries.OrderByDescending(x => x.CreatedAt).ToList();
         }
-        catch (ApiException ex) { err = ex.Message; }
-    }
-
-    private async Task AddBalance()
-    {
-        err = null;
-        try { await Api.AddOpeningBalanceAsync(topUp); await Load(); }
         catch (ApiException ex) { err = ex.Message; }
     }
 

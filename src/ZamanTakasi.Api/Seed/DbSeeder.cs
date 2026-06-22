@@ -14,6 +14,7 @@ public static class DbSeeder
     {
         var db = sp.GetRequiredService<AppDbContext>();
         var users = sp.GetRequiredService<UserManager<ApplicationUser>>();
+        var config = sp.GetRequiredService<IConfiguration>();
 
         // 1) Platform sistem kullanıcısı (domain User; bununla giriş yapılamaz).
         if (!await db.DomainUsers.AnyAsync(u => u.Id == SystemAccounts.PlatformUserId))
@@ -25,8 +26,13 @@ public static class DbSeeder
         // 2) Demo veriler yalnızca platform dışında kullanıcı yoksa eklenir.
         if (await db.DomainUsers.CountAsync() > 1) return;
 
-        var alice = await CreateUserAsync(users, db, "alice@demo.local", "Passw0rd!", "Alice");
-        var bob = await CreateUserAsync(users, db, "bob@demo.local", "Passw0rd!", "Bob");
+        // Demo parolası KODA GÖMÜLÜ DEĞİL; config'ten gelir (lokal için user-secrets: "Seed:DemoPassword").
+        // Tanımlı değilse (örn. prod) demo kullanıcılar oluşturulmaz.
+        var demoPassword = config["Seed:DemoPassword"];
+        if (string.IsNullOrWhiteSpace(demoPassword)) return;
+
+        var alice = await CreateUserAsync(users, db, "alice@demo.local", demoPassword, "Alice");
+        var bob = await CreateUserAsync(users, db, "bob@demo.local", demoPassword, "Bob");
 
         // Açılış bakiyesi (kapalı devre test kredisi).
         db.LedgerEntries.Add(new LedgerEntry(alice.Id, 10m, LedgerEntryType.OpeningBalance));

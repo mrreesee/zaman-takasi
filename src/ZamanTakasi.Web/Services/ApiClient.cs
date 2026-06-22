@@ -42,8 +42,6 @@ public sealed class ApiClient
     // ---- Wallet / Users ----
     public Task<WalletDto?> GetWalletAsync() => SendAsync<WalletDto>(HttpMethod.Get, "api/wallet");
     public Task<UserProfileDto?> MeAsync() => SendAsync<UserProfileDto>(HttpMethod.Get, "api/users/me");
-    public Task<UserProfileDto?> AddOpeningBalanceAsync(decimal amount) =>
-        SendAsync<UserProfileDto>(HttpMethod.Post, "api/users/me/opening-balance", new OpeningBalanceRequest(amount));
 
     private async Task<T?> SendAsync<T>(HttpMethod method, string url, object? body = null)
     {
