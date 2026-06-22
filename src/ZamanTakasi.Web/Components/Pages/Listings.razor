@@ -3,68 +3,112 @@
 @inject ApiClient Api
 @inject AuthState Auth
 
-<PageTitle>İlanlar</PageTitle>
-<h1>İlanlar</h1>
+<PageTitle>İlanlar — Zaman Takası</PageTitle>
+
+<div class="zk-page-head">
+    <div>
+        <h1>İlanlar</h1>
+        <p>Yeteneğini zaman kredisiyle takas et — 1 saat = 1 ZK.</p>
+    </div>
+    @if (Auth.IsAuthenticated)
+    {
+        <button class="zk-btn zk-btn-ghost" @onclick="ToggleNewForm">
+            <i class="ti ti-plus"></i> Yeni ilan
+        </button>
+    }
+</div>
+
+@if (msg is not null) { <div class="alert alert-success zk-mt">@msg</div> }
+@if (err is not null) { <div class="alert alert-danger zk-mt">@err</div> }
+
+@if (Auth.IsAuthenticated && showNewForm)
+{
+    <div class="zk-card zk-mt" style="max-width:560px;">
+        <h3 style="margin:0 0 14px; font-size:19px;">Yeni ilan oluştur</h3>
+        <input class="form-control mb-2" placeholder="Başlık (örn. Web sitesi kurulumu)" @bind="newTitle" />
+        <textarea class="form-control mb-2" rows="3" placeholder="Kısa açıklama" @bind="newDesc"></textarea>
+        <select class="form-select mb-3" @bind="newTier">
+            @foreach (var t in Enum.GetValues<SkillTier>())
+            {
+                <option value="@t">@TierName(t) (×@((int)t))</option>
+            }
+        </select>
+        <div style="display:flex; gap:10px;">
+            <button class="zk-btn zk-btn-primary" @onclick="CreateListing"><i class="ti ti-check"></i> Oluştur</button>
+            <button class="zk-btn zk-btn-ghost" @onclick="ToggleNewForm">Vazgeç</button>
+        </div>
+    </div>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <div class="alert alert-secondary zk-mt">
+        İlan oluşturmak / rezervasyon yapmak için <a href="login">giriş</a> yap.
+    </div>
+}
 
 @if (loading)
 {
-    <p>Yükleniyor…</p>
+    <p class="zk-mt" style="color:var(--zk-muted);">Yükleniyor…</p>
 }
-else
+else if (listings.Count == 0)
 {
-    <table class="table align-middle">
-        <thead><tr><th>Başlık</th><th>Sağlayıcı</th><th>Seviye</th><th>ZK/saat</th><th></th></tr></thead>
-        <tbody>
-            @foreach (var l in listings)
-            {
-                <tr>
-                    <td>@l.Title<br /><small class="text-muted">@l.Description</small></td>
-                    <td>@l.ProviderDisplayName</td>
-                    <td>@l.Tier (x@((int)l.Tier))</td>
-                    <td>@l.HourlyCreditRate</td>
-                    <td>
-                        @if (Auth.IsAuthenticated && l.ProviderUserId != Auth.UserId)
-                        {
-                            <div class="input-group input-group-sm" style="max-width:240px">
-                                <input type="number" step="0.5" min="0.5" class="form-control" @bind="hours[l.Id]" />
-                                <button class="btn btn-primary" @onclick="() => Book(l)">Rezerve et</button>
-                            </div>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-@if (msg is not null) { <div class="alert alert-success">@msg</div> }
-@if (err is not null) { <div class="alert alert-danger">@err</div> }
-
-@if (Auth.IsAuthenticated)
-{
-    <hr />
-    <h3>Yeni ilan</h3>
-    <div style="max-width:480px">
-        <input class="form-control mb-2" placeholder="Başlık" @bind="newTitle" />
-        <textarea class="form-control mb-2" placeholder="Açıklama" @bind="newDesc"></textarea>
-        <select class="form-select mb-2" @bind="newTier">
-            @foreach (var t in Enum.GetValues<SkillTier>())
-            {
-                <option value="@t">@t (x@((int)t))</option>
-            }
-        </select>
-        <button class="btn btn-success" @onclick="CreateListing">Oluştur</button>
+    <div class="zk-card zk-mt" style="text-align:center; padding:40px;">
+        <i class="ti ti-clipboard-off" style="font-size:36px; color:var(--zk-muted);"></i>
+        <p style="margin:12px 0 0; color:var(--zk-muted);">Henüz ilan yok. İlk ilanı sen oluştur!</p>
     </div>
 }
 else
 {
-    <div class="alert alert-secondary">İlan oluşturmak / rezervasyon yapmak için <a href="login">giriş</a> yap.</div>
+    <div class="zk-grid zk-mt">
+        @foreach (var l in listings)
+        {
+            <div class="zk-card hoverable zk-listing-card">
+                <div class="zk-listing-head">
+                    <div class="zk-avatar @AvatarClass(l.Tier)">@Initial(l.ProviderDisplayName)</div>
+                    <div>
+                        <div class="zk-listing-name">@l.ProviderDisplayName</div>
+                        <div class="zk-listing-meta"><i class="ti ti-star"></i> @l.Tier.ToString()</div>
+                    </div>
+                    <span class="zk-badge @BadgeClass(l.Tier)" style="margin-left:auto;">
+                        <i class="ti @BadgeIcon(l.Tier)"></i> @TierName(l.Tier) ×@((int)l.Tier)
+                    </span>
+                </div>
+
+                <h3 class="zk-listing-title">@l.Title</h3>
+                <p class="zk-listing-desc">@l.Description</p>
+
+                <div class="zk-listing-foot">
+                    <div style="display:flex; align-items:baseline; gap:4px;">
+                        <ZkAmount Amount="l.HourlyCreditRate" Size="lg" />
+                        <span style="font-size:12.5px; color:var(--zk-muted);">/saat</span>
+                    </div>
+
+                    @if (Auth.IsAuthenticated && l.ProviderUserId != Auth.UserId)
+                    {
+                        <div style="display:flex; align-items:center; gap:9px;">
+                            <div class="zk-stepper">
+                                <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="Azalt">−</button>
+                                <span class="zk-stepper-val">@FormatHours(hours[l.Id])s</span>
+                                <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="Artır">+</button>
+                            </div>
+                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Book(l)">Rezerve et</button>
+                        </div>
+                    }
+                    else if (Auth.IsAuthenticated && l.ProviderUserId == Auth.UserId)
+                    {
+                        <span class="zk-badge zk-badge-ink">Senin ilanın</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
 }
 
 @code {
     private List<ListingDto> listings = new();
     private readonly Dictionary<Guid, decimal> hours = new();
     private bool loading = true;
+    private bool showNewForm;
     private string? msg;
     private string? err;
 
@@ -93,6 +137,16 @@ else
         finally { loading = false; }
     }
 
+    private void ToggleNewForm() { showNewForm = !showNewForm; msg = err = null; }
+
+    private void AdjustHours(Guid id, decimal delta)
+    {
+        var v = hours.TryGetValue(id, out var cur) ? cur : 1m;
+        hours[id] = Math.Max(0.5m, v + delta);
+    }
+
+    private static string FormatHours(decimal h) => h.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
+
     private async Task Book(ListingDto l)
     {
         msg = err = null;
@@ -111,11 +165,43 @@ else
         {
             await Api.CreateListingAsync(new CreateListingRequest(newTitle, newDesc, newTier));
             newTitle = newDesc = ""; newTier = SkillTier.Basic;
+            showNewForm = false;
             await Load();
             msg = "İlan oluşturuldu.";
         }
         catch (ApiException ex) { err = ex.Message; }
     }
+
+    // ---- görsel yardımcılar ----
+    private static string Initial(string? name) => string.IsNullOrWhiteSpace(name) ? "?" : char.ToUpper(name.Trim()[0]).ToString();
+
+    private static string TierName(SkillTier t) => t switch
+    {
+        SkillTier.Basic => "Basic",
+        SkillTier.Verified => "Verified",
+        SkillTier.Professional => "Professional",
+        _ => t.ToString()
+    };
+
+    private static string BadgeClass(SkillTier t) => t switch
+    {
+        SkillTier.Verified => "zk-badge-cyan",
+        SkillTier.Professional => "zk-badge-purple",
+        _ => "zk-badge-ink"
+    };
+
+    private static string BadgeIcon(SkillTier t) => t switch
+    {
+        SkillTier.Professional => "ti-award",
+        _ => "ti-rosette-discount-check"
+    };
+
+    private static string AvatarClass(SkillTier t) => t switch
+    {
+        SkillTier.Professional => "zk-badge-purple",
+        SkillTier.Verified => "zk-badge-cyan",
+        _ => "zk-badge-ink"
+    };
 
     public void Dispose() => Auth.Changed -= OnChanged;
 }

@@ -1,13 +1,20 @@
 @page "/wallet"
+@using System.Globalization
 @inject ApiClient Api
 @inject AuthState Auth
 
-<PageTitle>Cüzdan</PageTitle>
-<h1>Cüzdan</h1>
+<PageTitle>Cüzdan — Zaman Takası</PageTitle>
+
+<div class="zk-page-head">
+    <div>
+        <h1>Cüzdan</h1>
+        <p>Zaman kredilerin ve tüm hareketlerin.</p>
+    </div>
+</div>
 
 @if (!ready)
 {
-    <p>Yükleniyor…</p>
+    <p style="color:var(--zk-muted);">Yükleniyor…</p>
 }
 else if (!Auth.IsAuthenticated)
 {
@@ -15,38 +22,50 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    <h2 class="mb-3">@balance ZK</h2>
-
-    <div class="mb-3">
-        <div class="input-group" style="max-width:320px">
-            <input type="number" step="1" min="1" class="form-control" @bind="topUp" />
-            <button class="btn btn-outline-secondary" @onclick="AddBalance">Test bakiyesi ekle</button>
+    <div class="zk-balance-card">
+        <div>
+            <div class="zk-balance-label">Bakiyen</div>
+            <ZkAmount Amount="balance" Size="xl" />
         </div>
-        <small class="text-muted">Kapalı devre test kredisi — nakit değildir, TL'ye çevrilemez.</small>
+        <div>
+            <div class="zk-topup">
+                <input type="number" step="1" min="1" class="form-control" @bind="topUp" />
+                <button class="zk-btn zk-btn-ghost" @onclick="AddBalance"><i class="ti ti-plus"></i> Test bakiyesi ekle</button>
+            </div>
+            <small style="color:var(--zk-muted); display:block; margin-top:6px;">Kapalı devre test kredisi — nakit değildir, TL'ye çevrilemez.</small>
+        </div>
     </div>
 
-    <table class="table">
-        <thead><tr><th>Tarih</th><th>Tür</th><th>Tutar (ZK)</th></tr></thead>
-        <tbody>
-            @if (entries.Count == 0)
-            {
-                <tr><td colspan="3" class="text-muted">Henüz işlem yok.</td></tr>
-            }
+    @if (err is not null) { <div class="alert alert-danger zk-mt">@err</div> }
+
+    <div class="zk-card zk-ledger">
+        <h3 style="font-size:18px; margin:0 0 8px;">Hareketler</h3>
+        @if (entries.Count == 0)
+        {
+            <div class="zk-empty">Henüz işlem yok.</div>
+        }
+        else
+        {
             @foreach (var e in entries)
             {
-                <tr>
-                    <td>@e.CreatedAt.ToLocalTime().ToString("g")</td>
-                    <td>@e.EntryType</td>
-                    <td class="@(e.Amount < 0 ? "text-danger" : "text-success")">@e.Amount</td>
-                </tr>
+                <div class="zk-ledger-row">
+                    <div class="zk-ledger-ic @TypeBadge(e.EntryType)"><i class="ti @TypeIcon(e.EntryType)"></i></div>
+                    <div class="zk-ledger-main">
+                        <div class="zk-ledger-type">@TypeName(e.EntryType)</div>
+                        <div class="zk-ledger-date">@e.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", Tr)</div>
+                    </div>
+                    <div class="@(e.Amount < 0 ? "zk-amount-neg" : "zk-amount-pos")">
+                        @(e.Amount < 0 ? "" : "+")@e.Amount.ToString("0.##", Tr) ZK
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
+        }
+    </div>
 }
 
-@if (err is not null) { <div class="alert alert-danger">@err</div> }
-
 @code {
+    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
+
     private bool ready;
     private string? err;
     private decimal balance;
@@ -66,7 +85,7 @@ else
         {
             var w = await Api.GetWalletAsync();
             balance = w!.Balance;
-            entries = w.Entries.ToList();
+            entries = w.Entries.OrderByDescending(x => x.CreatedAt).ToList();
         }
         catch (ApiException ex) { err = ex.Message; }
     }
@@ -77,4 +96,30 @@ else
         try { await Api.AddOpeningBalanceAsync(topUp); await Load(); }
         catch (ApiException ex) { err = ex.Message; }
     }
+
+    private static string TypeName(LedgerEntryType t) => t switch
+    {
+        LedgerEntryType.OpeningBalance => "Açılış bakiyesi",
+        LedgerEntryType.ServicePayment => "Hizmet ödemesi",
+        LedgerEntryType.ServiceEarning => "Hizmet kazancı",
+        LedgerEntryType.Commission => "Komisyon",
+        _ => t.ToString()
+    };
+
+    private static string TypeIcon(LedgerEntryType t) => t switch
+    {
+        LedgerEntryType.OpeningBalance => "ti-wallet",
+        LedgerEntryType.ServicePayment => "ti-arrow-up-right",
+        LedgerEntryType.ServiceEarning => "ti-arrow-down-left",
+        LedgerEntryType.Commission => "ti-businessplan",
+        _ => "ti-coin"
+    };
+
+    private static string TypeBadge(LedgerEntryType t) => t switch
+    {
+        LedgerEntryType.ServiceEarning => "zk-badge-green",
+        LedgerEntryType.ServicePayment => "zk-badge-red",
+        LedgerEntryType.Commission => "zk-badge-amber",
+        _ => "zk-badge-cyan"
+    };
 }

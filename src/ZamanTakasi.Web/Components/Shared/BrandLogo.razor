@@ -1,0 +1,27 @@
+@* Zaman Takası marka logosu: çift oklu Z monogramı (takas ⇄) + opsiyonel kelime markası. *@
+
+<a class="zk-brand @(OnDark ? "on-dark" : null)" href="@Href">
+    <svg width="@Size" height="@Size" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <rect x="3" y="3" width="42" height="42" rx="13" fill="var(--zk-cyan)" />
+        <path d="M15 15 H32 L16 33 H33" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <path d="M29.5 11 L34 15 L29.5 19" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <path d="M20 29 L15 33 L20 37" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </svg>
+    @if (ShowText)
+    {
+        <span>Zaman Takası</span>
+    }
+</a>
+
+@code {
+    /// <summary>Logo işaretinin kenar uzunluğu (px).</summary>
+    [Parameter] public int Size { get; set; } = 38;
+
+    /// <summary>Kelime markası ("Zaman Takası") gösterilsin mi?</summary>
+    [Parameter] public bool ShowText { get; set; } = true;
+
+    /// <summary>Koyu zemin üzerinde mi? (kelime markası beyaz olur)</summary>
+    [Parameter] public bool OnDark { get; set; }
+
+    [Parameter] public string Href { get; set; } = "";
+}

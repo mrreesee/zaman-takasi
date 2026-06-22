@@ -1,63 +1,89 @@
 @implements IDisposable
 @inject AuthState Auth
+@inject ApiClient Api
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Zaman Takası</a>
+<header class="zk-nav">
+    <div class="zk-nav-inner">
+        <BrandLogo Href="" Size="38" />
+
+        <nav class="zk-nav-links @(menuOpen ? "open" : null)" @onclick="CloseMenu">
+            <NavLink href="" Match="NavLinkMatch.All">Ana sayfa</NavLink>
+            <NavLink href="listings">İlanlar</NavLink>
+            <NavLink href="bookings">Rezervasyonlarım</NavLink>
+            <NavLink href="wallet">Cüzdan</NavLink>
+        </nav>
+
+        <div class="zk-nav-cta">
+            @if (Auth.IsAuthenticated)
+            {
+                <a href="wallet" class="zk-balance-pill" title="Cüzdan bakiyen">
+                    @if (balance is decimal b)
+                    {
+                        <ZkAmount Amount="b" />
+                    }
+                    else
+                    {
+                        <span>— ZK</span>
+                    }
+                </a>
+                <div class="zk-nav-user">
+                    <span class="zk-nav-avatar">@Initials</span>
+                    <button class="zk-btn zk-btn-ghost zk-btn-sm" @onclick="Logout">Çıkış</button>
+                </div>
+            }
+            else
+            {
+                <a href="login" class="zk-btn zk-btn-primary zk-btn-sm">Giriş</a>
+            }
+
+            <button class="zk-nav-toggle" @onclick="ToggleMenu" aria-label="Menü">
+                <i class="ti ti-menu-2"></i>
+            </button>
+        </div>
     </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Ana sayfa
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="listings">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> İlanlar
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bookings">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Rezervasyonlarım
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="wallet">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Cüzdan
-            </NavLink>
-        </div>
-
-        @if (Auth.IsAuthenticated)
-        {
-            <div class="nav-item px-3 mt-2 text-light small">@Auth.DisplayName</div>
-            <div class="nav-item px-3">
-                <button class="btn btn-sm btn-outline-light" @onclick="Logout">Çıkış</button>
-            </div>
-        }
-        else
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="login">Giriş / Kayıt</NavLink>
-            </div>
-        }
-    </nav>
-</div>
+</header>
 
 @code {
+    private decimal? balance;
+    private bool menuOpen;
+
     protected override async Task OnInitializedAsync()
     {
-        Auth.Changed += OnChanged;
+        Auth.Changed += OnAuthChanged;
         await Auth.EnsureLoadedAsync();
+        await LoadBalance();
     }
 
-    private void OnChanged() => InvokeAsync(StateHasChanged);
+    private void OnAuthChanged() => InvokeAsync(async () =>
+    {
+        await LoadBalance();
+        StateHasChanged();
+    });
+
+    private async Task LoadBalance()
+    {
+        if (!Auth.IsAuthenticated) { balance = null; return; }
+        try { balance = (await Api.GetWalletAsync())?.Balance; }
+        catch { balance = null; }
+    }
+
+    private void ToggleMenu() => menuOpen = !menuOpen;
+    private void CloseMenu() => menuOpen = false;
 
     private async Task Logout() => await Auth.SignOutAsync();
 
-    public void Dispose() => Auth.Changed -= OnChanged;
+    private string Initials
+    {
+        get
+        {
+            var name = Auth.DisplayName;
+            if (string.IsNullOrWhiteSpace(name)) return "?";
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length >= 2
+                ? $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}"
+                : char.ToUpper(name[0]).ToString();
+        }
+    }
+
+    public void Dispose() => Auth.Changed -= OnAuthChanged;
 }

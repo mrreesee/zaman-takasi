@@ -1,23 +1,48 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="zk-app">
+    <NavMenu />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    <main class="zk-main">
+        <div class="zk-container">
             @Body
-        </article>
+        </div>
     </main>
+
+    <footer class="zk-footer zk-dark">
+        <div class="zk-container">
+            <div class="zk-footer-grid">
+                <div>
+                    <BrandLogo Href="" Size="40" OnDark="true" />
+                    <p class="zk-footer-tag">
+                        Zamanını paraya değil, zamana çeviren topluluk pazarı.
+                        Krediler kapalı devredir — nakit/TL'ye çevrilemez.
+                    </p>
+                </div>
+                <div>
+                    <h4>Keşfet</h4>
+                    <ul>
+                        <li><a href="">Ana sayfa</a></li>
+                        <li><a href="listings">İlanlar</a></li>
+                        <li><a href="bookings">Rezervasyonlarım</a></li>
+                        <li><a href="wallet">Cüzdan</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Hesap</h4>
+                    <ul>
+                        <li><a href="login">Giriş</a></li>
+                        <li><a href="register">Kayıt ol</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="zk-footer-copy">© 2026 Zaman Takası</div>
+        </div>
+    </footer>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
+    Beklenmeyen bir hata oluştu.
+    <a href="." class="reload">Yeniden yükle</a>
     <span class="dismiss">🗙</span>
 </div>

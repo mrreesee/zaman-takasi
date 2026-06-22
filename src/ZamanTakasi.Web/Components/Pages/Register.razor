@@ -3,16 +3,37 @@
 @inject AuthState Auth
 @inject NavigationManager Nav
 
-<PageTitle>Kayıt</PageTitle>
-<h1>Kayıt ol</h1>
+<PageTitle>Kayıt — Zaman Takası</PageTitle>
 
-<div style="max-width:420px">
-    <div class="mb-2"><label class="form-label">Görünen ad</label><input class="form-control" @bind="displayName" /></div>
-    <div class="mb-2"><label class="form-label">E-posta</label><input class="form-control" @bind="email" /></div>
-    <div class="mb-2"><label class="form-label">Parola</label><input type="password" class="form-control" @bind="password" /></div>
-    <button class="btn btn-primary" @onclick="Submit" disabled="@busy">Kayıt ol</button>
-    <a class="btn btn-link" href="login">Zaten hesabın var mı? Giriş</a>
-    @if (error is not null) { <div class="alert alert-danger mt-2">@error</div> }
+<div class="zk-auth-wrap">
+    <div class="zk-auth-card">
+        <div class="zk-auth-head">
+            <BrandLogo Href="" Size="46" ShowText="false" />
+            <h1>Aramıza katıl</h1>
+            <p>Birkaç saniyede hesap oluştur, takasa başla.</p>
+        </div>
+
+        <div class="zk-field">
+            <label>Görünen ad</label>
+            <input class="form-control" @bind="displayName" @bind:event="oninput" placeholder="Adın" />
+        </div>
+        <div class="zk-field">
+            <label>E-posta</label>
+            <input class="form-control" type="email" @bind="email" @bind:event="oninput" placeholder="ornek@posta.com" />
+        </div>
+        <div class="zk-field">
+            <label>Parola</label>
+            <input class="form-control" type="password" @bind="password" @bind:event="oninput" placeholder="En az 6 karakter" />
+        </div>
+
+        <button class="zk-btn zk-btn-primary zk-block" @onclick="Submit" disabled="@busy">
+            @if (busy) { <span>Oluşturuluyor…</span> } else { <span><i class="ti ti-user-plus"></i> Kayıt ol</span> }
+        </button>
+
+        @if (error is not null) { <div class="alert alert-danger zk-mt">@error</div> }
+
+        <div class="zk-auth-foot">Zaten hesabın var mı? <a href="login">Giriş yap</a></div>
+    </div>
 </div>
 
 @code {
