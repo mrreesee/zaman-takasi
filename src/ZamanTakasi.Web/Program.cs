@@ -3,6 +3,11 @@ using ZamanTakasi.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Bulut (Railway/Heroku vb.): PORT verilmişse o porta bağlan — tek public origin.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
