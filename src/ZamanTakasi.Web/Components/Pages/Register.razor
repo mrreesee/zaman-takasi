@@ -23,7 +23,10 @@
         </div>
         <div class="zk-field">
             <label>Parola</label>
-            <input class="form-control" type="password" @bind="password" @bind:event="oninput" placeholder="En az 6 karakter" />
+            <input class="form-control" type="password" @bind="password" @bind:event="oninput" placeholder="••••••••" />
+            <small style="display:block; margin-top:6px; color:var(--zk-muted); font-size:12.5px;">
+                <i class="ti ti-info-circle"></i> En az <b>6 karakter</b>, içinde en az <b>1 küçük harf</b> ve <b>1 rakam</b> olmalı. (örn. <code>deneme123</code>)
+            </small>
         </div>
 
         <button class="zk-btn zk-btn-primary zk-block" @onclick="Submit" disabled="@busy">

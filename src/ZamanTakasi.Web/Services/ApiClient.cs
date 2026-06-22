@@ -63,11 +63,31 @@ public sealed class ApiClient
     {
         try
         {
-            var problem = await res.Content.ReadFromJsonAsync<ProblemLike>(Json);
-            if (!string.IsNullOrWhiteSpace(problem?.Detail)) return problem!.Detail!;
-            if (!string.IsNullOrWhiteSpace(problem?.Title)) return problem!.Title!;
+            var raw = await res.Content.ReadAsStringAsync();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                // 1) ProblemDetails (nesne) — domain hataları böyle gelir.
+                try
+                {
+                    var problem = JsonSerializer.Deserialize<ProblemLike>(raw, Json);
+                    if (!string.IsNullOrWhiteSpace(problem?.Detail)) return problem!.Detail!;
+                    if (!string.IsNullOrWhiteSpace(problem?.Title)) return problem!.Title!;
+                }
+                catch { /* nesne değil */ }
+
+                // 2) Düz JSON string body (örn. BadRequest("...")) — tırnakları ayıkla.
+                try
+                {
+                    var asString = JsonSerializer.Deserialize<string>(raw, Json);
+                    if (!string.IsNullOrWhiteSpace(asString)) return asString!;
+                }
+                catch { /* JSON string değil */ }
+
+                // 3) Ham metin (çok uzun değilse).
+                if (raw.Length <= 500) return raw;
+            }
         }
-        catch { /* JSON değilse aşağıya düş */ }
+        catch { /* gövde okunamadı */ }
         return $"İstek başarısız ({(int)res.StatusCode}).";
     }
 
