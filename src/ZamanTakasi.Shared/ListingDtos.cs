@@ -2,7 +2,7 @@ using ZamanTakasi.Core.Enums;
 
 namespace ZamanTakasi.Shared;
 
-public record CreateListingRequest(string Title, string Description, SkillTier Tier);
+public record CreateListingRequest(string Title, string Description, SkillTier Tier, string Language = "en");
 
 public record ListingDto(
     Guid Id,
@@ -13,4 +13,5 @@ public record ListingDto(
     SkillTier Tier,
     int HourlyCreditRate,
     bool IsActive,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string Language);

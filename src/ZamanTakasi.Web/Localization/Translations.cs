@@ -95,6 +95,9 @@ public static class Translations
         ["listings.ownListing"] = "Your listing",
         ["listings.created"] = "Listing created.",
         ["listings.bookingCreated"] = "Booking created: {0} ZK (status: {1}). Continue from 'My bookings'.",
+        ["listings.langLabel"] = "Listing language",
+        ["listings.allLang"] = "All",
+        ["listings.filterShow"] = "Show:",
         // bookings
         ["bookings.subtitle"] = "Manage the services you provide and receive.",
         ["bookings.incoming"] = "Incoming — I provide the service",
@@ -214,6 +217,9 @@ public static class Translations
         ["listings.ownListing"] = "Senin ilanın",
         ["listings.created"] = "İlan oluşturuldu.",
         ["listings.bookingCreated"] = "Rezervasyon oluşturuldu: {0} ZK (durum: {1}). 'Rezervasyonlarım'dan ilerlet.",
+        ["listings.langLabel"] = "İlan dili",
+        ["listings.allLang"] = "Tümü",
+        ["listings.filterShow"] = "Göster:",
         // bookings
         ["bookings.subtitle"] = "Sağladığın ve aldığın hizmetleri buradan yönet.",
         ["bookings.incoming"] = "Gelen — hizmeti ben sağlıyorum",

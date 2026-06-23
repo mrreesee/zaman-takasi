@@ -36,8 +36,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             e.Property(x => x.Title).IsRequired().HasMaxLength(160);
             e.Property(x => x.Description).HasMaxLength(2000);
             e.Property(x => x.Tier).HasConversion<int>();
+            // İçerik dili ("en"/"tr"); mevcut satırlar Türkçe içerik olduğu için varsayılan "tr".
+            e.Property(x => x.Language).IsRequired().HasMaxLength(8).HasDefaultValue("tr");
             e.HasIndex(x => x.IsActive);
             e.HasIndex(x => x.ProviderUserId);
+            e.HasIndex(x => x.Language);
         });
 
         b.Entity<Booking>(e =>

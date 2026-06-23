@@ -38,9 +38,11 @@ public static class DbSeeder
         db.LedgerEntries.Add(new LedgerEntry(alice.Id, 10m, LedgerEntryType.OpeningBalance));
         db.LedgerEntries.Add(new LedgerEntry(bob.Id, 10m, LedgerEntryType.OpeningBalance));
 
-        // Örnek ilanlar.
-        db.Listings.Add(new ServiceListing(bob.Id, "Web sitesi kurulumu", "Statik site + GitHub Pages yayını.", SkillTier.Verified));
-        db.Listings.Add(new ServiceListing(alice.Id, "İngilizce konuşma pratiği", "30–60 dk seans.", SkillTier.Basic));
+        // Örnek ilanlar — iki dilli (en/tr), arayüz diline göre filtrelenir.
+        db.Listings.Add(new ServiceListing(bob.Id, "Web sitesi kurulumu", "Statik site + GitHub Pages yayını.", SkillTier.Verified, "tr"));
+        db.Listings.Add(new ServiceListing(bob.Id, "Website setup", "Static site + GitHub Pages deployment.", SkillTier.Verified, "en"));
+        db.Listings.Add(new ServiceListing(alice.Id, "İngilizce konuşma pratiği", "30–60 dk seans.", SkillTier.Basic, "tr"));
+        db.Listings.Add(new ServiceListing(alice.Id, "English conversation practice", "30–60 min one-on-one sessions.", SkillTier.Basic, "en"));
 
         await db.SaveChangesAsync();
     }

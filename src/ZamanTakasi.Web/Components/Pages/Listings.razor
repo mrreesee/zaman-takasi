@@ -29,12 +29,18 @@
         <h3 style="margin:0 0 14px; font-size:19px;">@L["listings.newHeading"]</h3>
         <input class="form-control mb-2" placeholder="@L["listings.titlePlaceholder"]" @bind="newTitle" />
         <textarea class="form-control mb-2" rows="3" placeholder="@L["listings.descPlaceholder"]" @bind="newDesc"></textarea>
-        <select class="form-select mb-3" @bind="newTier">
-            @foreach (var t in Enum.GetValues<SkillTier>())
-            {
-                <option value="@t">@t (×@((int)t))</option>
-            }
-        </select>
+        <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <select class="form-select" @bind="newTier">
+                @foreach (var t in Enum.GetValues<SkillTier>())
+                {
+                    <option value="@t">@t (×@((int)t))</option>
+                }
+            </select>
+            <select class="form-select" @bind="newLang" title="@L["listings.langLabel"]">
+                <option value="en">English</option>
+                <option value="tr">Türkçe</option>
+            </select>
+        </div>
         <div style="display:flex; gap:10px;">
             <button class="zk-btn zk-btn-primary" @onclick="CreateListing"><i class="ti ti-check"></i> @L["common.create"]</button>
             <button class="zk-btn zk-btn-ghost" @onclick="ToggleNewForm">@L["common.cancel"]</button>
@@ -61,49 +67,66 @@ else if (listings.Count == 0)
 }
 else
 {
-    <div class="zk-grid zk-mt">
-        @foreach (var l in listings)
-        {
-            <div class="zk-card hoverable zk-listing-card">
-                <div class="zk-listing-head">
-                    <div class="zk-avatar @AvatarClass(l.Tier)">@Initial(l.ProviderDisplayName)</div>
-                    <div>
-                        <div class="zk-listing-name">@l.ProviderDisplayName</div>
-                        <div class="zk-listing-meta"><i class="ti ti-star"></i> @l.Tier</div>
-                    </div>
-                    <span class="zk-badge @BadgeClass(l.Tier)" style="margin-left:auto;">
-                        <i class="ti @BadgeIcon(l.Tier)"></i> @l.Tier ×@((int)l.Tier)
-                    </span>
-                </div>
-
-                <h3 class="zk-listing-title">@l.Title</h3>
-                <p class="zk-listing-desc">@l.Description</p>
-
-                <div class="zk-listing-foot">
-                    <div style="display:flex; align-items:baseline; gap:4px;">
-                        <ZkAmount Amount="l.HourlyCreditRate" Size="lg" />
-                        <span style="font-size:12.5px; color:var(--zk-muted);">@L["common.perHour"]</span>
-                    </div>
-
-                    @if (Auth.IsAuthenticated && l.ProviderUserId != Auth.UserId)
-                    {
-                        <div style="display:flex; align-items:center; gap:9px;">
-                            <div class="zk-stepper">
-                                <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="-">−</button>
-                                <span class="zk-stepper-val">@FormatHours(hours[l.Id])@L["common.hourShort"]</span>
-                                <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="+">+</button>
-                            </div>
-                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Book(l)">@L["listings.book"]</button>
-                        </div>
-                    }
-                    else if (Auth.IsAuthenticated && l.ProviderUserId == Auth.UserId)
-                    {
-                        <span class="zk-badge zk-badge-ink">@L["listings.ownListing"]</span>
-                    }
-                </div>
-            </div>
-        }
+    <div class="zk-langfilter zk-mt">
+        <span>@L["listings.filterShow"]</span>
+        <button class="zk-chip @(langFilter == "en" ? "active" : null)" @onclick='() => SetFilter("en")'>EN</button>
+        <button class="zk-chip @(langFilter == "tr" ? "active" : null)" @onclick='() => SetFilter("tr")'>TR</button>
+        <button class="zk-chip @(langFilter == "all" ? "active" : null)" @onclick='() => SetFilter("all")'>@L["listings.allLang"]</button>
     </div>
+
+    @if (!FilteredListings.Any())
+    {
+        <div class="zk-card zk-mt" style="text-align:center; padding:40px;">
+            <i class="ti ti-language-off" style="font-size:36px; color:var(--zk-muted);"></i>
+            <p style="margin:12px 0 0; color:var(--zk-muted);">@L["listings.empty"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="zk-grid zk-mt">
+            @foreach (var l in FilteredListings)
+            {
+                <div class="zk-card hoverable zk-listing-card">
+                    <div class="zk-listing-head">
+                        <div class="zk-avatar @AvatarClass(l.Tier)">@Initial(l.ProviderDisplayName)</div>
+                        <div>
+                            <div class="zk-listing-name">@l.ProviderDisplayName</div>
+                            <div class="zk-listing-meta"><i class="ti ti-star"></i> @l.Tier · @l.Language.ToUpperInvariant()</div>
+                        </div>
+                        <span class="zk-badge @BadgeClass(l.Tier)" style="margin-left:auto;">
+                            <i class="ti @BadgeIcon(l.Tier)"></i> @l.Tier ×@((int)l.Tier)
+                        </span>
+                    </div>
+
+                    <h3 class="zk-listing-title">@l.Title</h3>
+                    <p class="zk-listing-desc">@l.Description</p>
+
+                    <div class="zk-listing-foot">
+                        <div style="display:flex; align-items:baseline; gap:4px;">
+                            <ZkAmount Amount="l.HourlyCreditRate" Size="lg" />
+                            <span style="font-size:12.5px; color:var(--zk-muted);">@L["common.perHour"]</span>
+                        </div>
+
+                        @if (Auth.IsAuthenticated && l.ProviderUserId != Auth.UserId)
+                        {
+                            <div style="display:flex; align-items:center; gap:9px;">
+                                <div class="zk-stepper">
+                                    <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="-">−</button>
+                                    <span class="zk-stepper-val">@FormatHours(hours[l.Id])@L["common.hourShort"]</span>
+                                    <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="+">+</button>
+                                </div>
+                                <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Book(l)">@L["listings.book"]</button>
+                            </div>
+                        }
+                        else if (Auth.IsAuthenticated && l.ProviderUserId == Auth.UserId)
+                        {
+                            <span class="zk-badge zk-badge-ink">@L["listings.ownListing"]</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
 }
 
 @code {
@@ -117,15 +140,25 @@ else
     private string newTitle = "";
     private string newDesc = "";
     private SkillTier newTier = SkillTier.Basic;
+    private string newLang = "en";
+    private string langFilter = "en";
+
+    private IEnumerable<ListingDto> FilteredListings =>
+        langFilter == "all" ? listings : listings.Where(l => l.Language == langFilter);
 
     protected override async Task OnInitializedAsync()
     {
         Auth.Changed += OnChanged;
         await Auth.EnsureLoadedAsync();
+        // Varsayılan: arayüz dilindeki ilanlar + oluştururken arayüz dili.
+        newLang = L.Lang;
+        langFilter = L.Lang;
         await Load();
     }
 
     private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private void SetFilter(string f) => langFilter = f;
 
     private async Task Load()
     {
@@ -166,9 +199,11 @@ else
         msg = err = null;
         try
         {
-            await Api.CreateListingAsync(new CreateListingRequest(newTitle, newDesc, newTier));
-            newTitle = newDesc = ""; newTier = SkillTier.Basic;
+            await Api.CreateListingAsync(new CreateListingRequest(newTitle, newDesc, newTier, newLang));
+            newTitle = newDesc = "";
+            newTier = SkillTier.Basic;
             showNewForm = false;
+            langFilter = newLang; // yeni ilanı görebilesin diye o dile geç
             await Load();
             msg = L["listings.created"];
         }

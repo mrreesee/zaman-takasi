@@ -29,7 +29,7 @@ public sealed class ListingsController : ControllerBase
                            orderby l.CreatedAt descending
                            select new ListingDto(
                                l.Id, l.ProviderUserId, u != null ? u.DisplayName : "—",
-                               l.Title, l.Description, l.Tier, (int)l.Tier, l.IsActive, l.CreatedAt))
+                               l.Title, l.Description, l.Tier, (int)l.Tier, l.IsActive, l.CreatedAt, l.Language))
                           .ToListAsync();
         return Ok(items);
     }
@@ -49,7 +49,7 @@ public sealed class ListingsController : ControllerBase
     public async Task<ActionResult<ListingDto>> Create(CreateListingRequest req)
     {
         var providerId = User.GetUserId();
-        var listing = new ServiceListing(providerId, req.Title, req.Description, req.Tier);
+        var listing = new ServiceListing(providerId, req.Title, req.Description, req.Tier, req.Language);
         _db.Listings.Add(listing);
         await _db.SaveChangesAsync();
 

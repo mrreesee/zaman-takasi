@@ -559,6 +559,16 @@ h1:focus { outline: none; }
 .zk-mt { margin-top: 18px; }
 .zk-section-soft { background: var(--zk-bg-soft); }
 
+/* ilan dil filtresi */
+.zk-langfilter { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--zk-muted); }
+.zk-chip {
+    background: var(--zk-bg); border: 1px solid var(--zk-border); color: var(--zk-text);
+    font: inherit; font-size: 13px; font-weight: 600;
+    padding: 5px 13px; border-radius: 50px; cursor: pointer;
+}
+.zk-chip:hover { border-color: var(--zk-cyan); }
+.zk-chip.active { background: var(--zk-cyan); border-color: var(--zk-cyan); color: var(--zk-on-cyan); }
+
 /* durum rozeti renk varyantları */
 .zk-badge-amber { background: #fbf2df; color: #8a5d10; }
 .zk-badge-green { background: #e7f6ec; color: #1f7a44; }
