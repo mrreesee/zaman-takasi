@@ -1,11 +1,12 @@
 @page "/not-found"
 @layout MainLayout
+@inject Loc L
 
-<PageTitle>Sayfa bulunamadı — Zaman Takası</PageTitle>
+<PageTitle>@L["notfound.title"] — Zaman Takası</PageTitle>
 
 <div style="text-align:center; padding:80px 0;">
     <div style="font-family:var(--zk-font-head); font-size:72px; font-weight:700; color:var(--zk-cyan);">404</div>
-    <h1 style="margin:8px 0 10px;">Sayfa bulunamadı</h1>
-    <p style="color:var(--zk-muted); margin:0 0 24px;">Aradığın içerik taşınmış ya da hiç var olmamış olabilir.</p>
-    <a class="zk-btn zk-btn-primary" href=""><i class="ti ti-home"></i> Ana sayfaya dön</a>
+    <h1 style="margin:8px 0 10px;">@L["notfound.title"]</h1>
+    <p style="color:var(--zk-muted); margin:0 0 24px;">@L["notfound.body"]</p>
+    <a class="zk-btn zk-btn-primary" href=""><i class="ti ti-home"></i> @L["notfound.home"]</a>
 </div>

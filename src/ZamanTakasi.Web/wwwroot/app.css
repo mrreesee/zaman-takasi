@@ -199,6 +199,24 @@ h1:focus { outline: none; }
     gap: 8px;
 }
 
+.zk-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--zk-border);
+    color: var(--zk-text);
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 7px 12px;
+    border-radius: var(--zk-r-sm);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.zk-lang:hover { border-color: var(--zk-cyan); color: var(--zk-cyan-dark); }
+.zk-lang i { font-size: 17px; }
+
 .zk-nav-avatar {
     width: 34px; height: 34px;
     border-radius: 11px;

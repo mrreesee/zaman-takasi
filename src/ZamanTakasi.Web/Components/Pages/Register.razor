@@ -2,40 +2,41 @@
 @inject ApiClient Api
 @inject AuthState Auth
 @inject NavigationManager Nav
+@inject Loc L
 
-<PageTitle>Kayıt — Zaman Takası</PageTitle>
+<PageTitle>@L["auth.register.submit"] — Zaman Takası</PageTitle>
 
 <div class="zk-auth-wrap">
     <div class="zk-auth-card">
         <div class="zk-auth-head">
             <BrandLogo Href="" Size="46" ShowText="false" />
-            <h1>Aramıza katıl</h1>
-            <p>Birkaç saniyede hesap oluştur, takasa başla.</p>
+            <h1>@L["auth.register.join"]</h1>
+            <p>@L["auth.register.sub"]</p>
         </div>
 
         <div class="zk-field">
-            <label>Görünen ad</label>
-            <input class="form-control" @bind="displayName" @bind:event="oninput" placeholder="Adın" />
+            <label>@L["auth.displayName"]</label>
+            <input class="form-control" @bind="displayName" @bind:event="oninput" placeholder="@L["auth.displayNamePlaceholder"]" />
         </div>
         <div class="zk-field">
-            <label>E-posta</label>
-            <input class="form-control" type="email" @bind="email" @bind:event="oninput" placeholder="ornek@posta.com" />
+            <label>@L["auth.email"]</label>
+            <input class="form-control" type="email" @bind="email" @bind:event="oninput" placeholder="@L["auth.emailPlaceholder"]" />
         </div>
         <div class="zk-field">
-            <label>Parola</label>
+            <label>@L["auth.password"]</label>
             <input class="form-control" type="password" @bind="password" @bind:event="oninput" placeholder="••••••••" />
             <small style="display:block; margin-top:6px; color:var(--zk-muted); font-size:12.5px;">
-                <i class="ti ti-info-circle"></i> En az <b>6 karakter</b>, içinde en az <b>1 küçük harf</b> ve <b>1 rakam</b> olmalı. (örn. <code>deneme123</code>)
+                <i class="ti ti-info-circle"></i> @L["auth.passwordHint"]
             </small>
         </div>
 
         <button class="zk-btn zk-btn-primary zk-block" @onclick="Submit" disabled="@busy">
-            @if (busy) { <span>Oluşturuluyor…</span> } else { <span><i class="ti ti-user-plus"></i> Kayıt ol</span> }
+            @if (busy) { <span>@L["auth.register.submitting"]</span> } else { <span><i class="ti ti-user-plus"></i> @L["auth.register.submit"]</span> }
         </button>
 
         @if (error is not null) { <div class="alert alert-danger zk-mt">@error</div> }
 
-        <div class="zk-auth-foot">Zaten hesabın var mı? <a href="login">Giriş yap</a></div>
+        <div class="zk-auth-foot">@L["auth.register.haveAccount"] <a href="login">@L["auth.login.submit"]</a></div>
     </div>
 </div>
 

@@ -1,19 +1,21 @@
 @page "/listings"
+@using System.Globalization
 @implements IDisposable
 @inject ApiClient Api
 @inject AuthState Auth
+@inject Loc L
 
-<PageTitle>İlanlar — Zaman Takası</PageTitle>
+<PageTitle>@L["listings.title"] — Zaman Takası</PageTitle>
 
 <div class="zk-page-head">
     <div>
-        <h1>İlanlar</h1>
-        <p>Yeteneğini zaman kredisiyle takas et — 1 saat = 1 ZK.</p>
+        <h1>@L["listings.title"]</h1>
+        <p>@L["listings.subtitle"]</p>
     </div>
     @if (Auth.IsAuthenticated)
     {
         <button class="zk-btn zk-btn-ghost" @onclick="ToggleNewForm">
-            <i class="ti ti-plus"></i> Yeni ilan
+            <i class="ti ti-plus"></i> @L["listings.new"]
         </button>
     }
 </div>
@@ -24,37 +26,37 @@
 @if (Auth.IsAuthenticated && showNewForm)
 {
     <div class="zk-card zk-mt" style="max-width:560px;">
-        <h3 style="margin:0 0 14px; font-size:19px;">Yeni ilan oluştur</h3>
-        <input class="form-control mb-2" placeholder="Başlık (örn. Web sitesi kurulumu)" @bind="newTitle" />
-        <textarea class="form-control mb-2" rows="3" placeholder="Kısa açıklama" @bind="newDesc"></textarea>
+        <h3 style="margin:0 0 14px; font-size:19px;">@L["listings.newHeading"]</h3>
+        <input class="form-control mb-2" placeholder="@L["listings.titlePlaceholder"]" @bind="newTitle" />
+        <textarea class="form-control mb-2" rows="3" placeholder="@L["listings.descPlaceholder"]" @bind="newDesc"></textarea>
         <select class="form-select mb-3" @bind="newTier">
             @foreach (var t in Enum.GetValues<SkillTier>())
             {
-                <option value="@t">@TierName(t) (×@((int)t))</option>
+                <option value="@t">@t (×@((int)t))</option>
             }
         </select>
         <div style="display:flex; gap:10px;">
-            <button class="zk-btn zk-btn-primary" @onclick="CreateListing"><i class="ti ti-check"></i> Oluştur</button>
-            <button class="zk-btn zk-btn-ghost" @onclick="ToggleNewForm">Vazgeç</button>
+            <button class="zk-btn zk-btn-primary" @onclick="CreateListing"><i class="ti ti-check"></i> @L["common.create"]</button>
+            <button class="zk-btn zk-btn-ghost" @onclick="ToggleNewForm">@L["common.cancel"]</button>
         </div>
     </div>
 }
 else if (!Auth.IsAuthenticated)
 {
     <div class="alert alert-secondary zk-mt">
-        İlan oluşturmak / rezervasyon yapmak için <a href="login">giriş</a> yap.
+        @L["listings.signInPrompt"] <a href="login">@L["nav.login"]</a>
     </div>
 }
 
 @if (loading)
 {
-    <p class="zk-mt" style="color:var(--zk-muted);">Yükleniyor…</p>
+    <p class="zk-mt" style="color:var(--zk-muted);">@L["common.loading"]</p>
 }
 else if (listings.Count == 0)
 {
     <div class="zk-card zk-mt" style="text-align:center; padding:40px;">
         <i class="ti ti-clipboard-off" style="font-size:36px; color:var(--zk-muted);"></i>
-        <p style="margin:12px 0 0; color:var(--zk-muted);">Henüz ilan yok. İlk ilanı sen oluştur!</p>
+        <p style="margin:12px 0 0; color:var(--zk-muted);">@L["listings.empty"]</p>
     </div>
 }
 else
@@ -67,10 +69,10 @@ else
                     <div class="zk-avatar @AvatarClass(l.Tier)">@Initial(l.ProviderDisplayName)</div>
                     <div>
                         <div class="zk-listing-name">@l.ProviderDisplayName</div>
-                        <div class="zk-listing-meta"><i class="ti ti-star"></i> @l.Tier.ToString()</div>
+                        <div class="zk-listing-meta"><i class="ti ti-star"></i> @l.Tier</div>
                     </div>
                     <span class="zk-badge @BadgeClass(l.Tier)" style="margin-left:auto;">
-                        <i class="ti @BadgeIcon(l.Tier)"></i> @TierName(l.Tier) ×@((int)l.Tier)
+                        <i class="ti @BadgeIcon(l.Tier)"></i> @l.Tier ×@((int)l.Tier)
                     </span>
                 </div>
 
@@ -80,23 +82,23 @@ else
                 <div class="zk-listing-foot">
                     <div style="display:flex; align-items:baseline; gap:4px;">
                         <ZkAmount Amount="l.HourlyCreditRate" Size="lg" />
-                        <span style="font-size:12.5px; color:var(--zk-muted);">/saat</span>
+                        <span style="font-size:12.5px; color:var(--zk-muted);">@L["common.perHour"]</span>
                     </div>
 
                     @if (Auth.IsAuthenticated && l.ProviderUserId != Auth.UserId)
                     {
                         <div style="display:flex; align-items:center; gap:9px;">
                             <div class="zk-stepper">
-                                <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="Azalt">−</button>
-                                <span class="zk-stepper-val">@FormatHours(hours[l.Id])s</span>
-                                <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="Artır">+</button>
+                                <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="-">−</button>
+                                <span class="zk-stepper-val">@FormatHours(hours[l.Id])@L["common.hourShort"]</span>
+                                <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="+">+</button>
                             </div>
-                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Book(l)">Rezerve et</button>
+                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Book(l)">@L["listings.book"]</button>
                         </div>
                     }
                     else if (Auth.IsAuthenticated && l.ProviderUserId == Auth.UserId)
                     {
-                        <span class="zk-badge zk-badge-ink">Senin ilanın</span>
+                        <span class="zk-badge zk-badge-ink">@L["listings.ownListing"]</span>
                     }
                 </div>
             </div>
@@ -145,7 +147,7 @@ else
         hours[id] = Math.Max(0.5m, v + delta);
     }
 
-    private static string FormatHours(decimal h) => h.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
+    private static string FormatHours(decimal h) => h.ToString("0.##", CultureInfo.CurrentCulture);
 
     private async Task Book(ListingDto l)
     {
@@ -153,7 +155,8 @@ else
         try
         {
             var b = await Api.CreateBookingAsync(new CreateBookingRequest(l.Id, hours[l.Id]));
-            msg = $"Rezervasyon oluşturuldu: {b!.CreditCost} ZK (durum {b.Status}). 'Rezervasyonlarım'dan ilerlet.";
+            var cost = b!.CreditCost.ToString("0.##", CultureInfo.CurrentCulture);
+            msg = L.Fmt("listings.bookingCreated", cost, StatusName(b.Status));
         }
         catch (ApiException ex) { err = ex.Message; }
     }
@@ -167,7 +170,7 @@ else
             newTitle = newDesc = ""; newTier = SkillTier.Basic;
             showNewForm = false;
             await Load();
-            msg = "İlan oluşturuldu.";
+            msg = L["listings.created"];
         }
         catch (ApiException ex) { err = ex.Message; }
     }
@@ -175,12 +178,13 @@ else
     // ---- görsel yardımcılar ----
     private static string Initial(string? name) => string.IsNullOrWhiteSpace(name) ? "?" : char.ToUpper(name.Trim()[0]).ToString();
 
-    private static string TierName(SkillTier t) => t switch
+    private string StatusName(BookingStatus s) => s switch
     {
-        SkillTier.Basic => "Basic",
-        SkillTier.Verified => "Verified",
-        SkillTier.Professional => "Professional",
-        _ => t.ToString()
+        BookingStatus.Pending => L["status.pending"],
+        BookingStatus.Accepted => L["status.accepted"],
+        BookingStatus.Completed => L["status.completed"],
+        BookingStatus.Cancelled => L["status.cancelled"],
+        _ => s.ToString()
     };
 
     private static string BadgeClass(SkillTier t) => t switch

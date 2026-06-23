@@ -19,11 +19,9 @@
     /// <summary>"ZK" birimini tutarın yanında göster.</summary>
     [Parameter] public bool ShowUnit { get; set; } = true;
 
-    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-
     private string SizeClass => Size;
 
     private int CoinSize => Size switch { "xl" => 26, "lg" => 20, _ => 18 };
 
-    private string Display => Amount.ToString("0.##", Tr);
+    private string Display => Amount.ToString("0.##", CultureInfo.CurrentCulture);
 }

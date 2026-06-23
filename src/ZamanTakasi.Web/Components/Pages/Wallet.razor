@@ -2,35 +2,35 @@
 @using System.Globalization
 @inject ApiClient Api
 @inject AuthState Auth
+@inject Loc L
 
-<PageTitle>Cüzdan — Zaman Takası</PageTitle>
+<PageTitle>@L["nav.wallet"] — Zaman Takası</PageTitle>
 
 <div class="zk-page-head">
     <div>
-        <h1>Cüzdan</h1>
-        <p>Zaman kredilerin ve tüm hareketlerin.</p>
+        <h1>@L["nav.wallet"]</h1>
+        <p>@L["wallet.subtitle"]</p>
     </div>
 </div>
 
 @if (!ready)
 {
-    <p style="color:var(--zk-muted);">Yükleniyor…</p>
+    <p style="color:var(--zk-muted);">@L["common.loading"]</p>
 }
 else if (!Auth.IsAuthenticated)
 {
-    <div class="alert alert-warning">Bu sayfa için <a href="login">giriş</a> gerekli.</div>
+    <div class="alert alert-warning">@L["common.signInRequired"] <a href="login">@L["nav.login"]</a></div>
 }
 else
 {
     <div class="zk-balance-card">
         <div>
-            <div class="zk-balance-label">Bakiyen</div>
+            <div class="zk-balance-label">@L["wallet.balanceLabel"]</div>
             <ZkAmount Amount="balance" Size="xl" />
         </div>
         <div style="max-width:340px;">
             <small style="color:var(--zk-muted);">
-                <i class="ti ti-lock"></i> Krediler <b>kapalı devredir</b> — yalnızca hizmet karşılığı
-                kazanılır, nakit/TL ile satın alınamaz. Kayıt olunca bir kerelik hoş geldin bakiyesi tanımlanır.
+                <i class="ti ti-lock"></i> @L["wallet.closedLoopNote"]
             </small>
         </div>
     </div>
@@ -38,10 +38,10 @@ else
     @if (err is not null) { <div class="alert alert-danger zk-mt">@err</div> }
 
     <div class="zk-card zk-ledger">
-        <h3 style="font-size:18px; margin:0 0 8px;">Hareketler</h3>
+        <h3 style="font-size:18px; margin:0 0 8px;">@L["wallet.transactions"]</h3>
         @if (entries.Count == 0)
         {
-            <div class="zk-empty">Henüz işlem yok.</div>
+            <div class="zk-empty">@L["wallet.empty"]</div>
         }
         else
         {
@@ -51,10 +51,10 @@ else
                     <div class="zk-ledger-ic @TypeBadge(e.EntryType)"><i class="ti @TypeIcon(e.EntryType)"></i></div>
                     <div class="zk-ledger-main">
                         <div class="zk-ledger-type">@TypeName(e.EntryType)</div>
-                        <div class="zk-ledger-date">@e.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", Tr)</div>
+                        <div class="zk-ledger-date">@e.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", CultureInfo.CurrentCulture)</div>
                     </div>
                     <div class="@(e.Amount < 0 ? "zk-amount-neg" : "zk-amount-pos")">
-                        @(e.Amount < 0 ? "" : "+")@e.Amount.ToString("0.##", Tr) ZK
+                        @(e.Amount < 0 ? "" : "+")@e.Amount.ToString("0.##", CultureInfo.CurrentCulture) ZK
                     </div>
                 </div>
             }
@@ -63,8 +63,6 @@ else
 }
 
 @code {
-    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-
     private bool ready;
     private string? err;
     private decimal balance;
@@ -88,12 +86,12 @@ else
         catch (ApiException ex) { err = ex.Message; }
     }
 
-    private static string TypeName(LedgerEntryType t) => t switch
+    private string TypeName(LedgerEntryType t) => t switch
     {
-        LedgerEntryType.OpeningBalance => "Açılış bakiyesi",
-        LedgerEntryType.ServicePayment => "Hizmet ödemesi",
-        LedgerEntryType.ServiceEarning => "Hizmet kazancı",
-        LedgerEntryType.Commission => "Komisyon",
+        LedgerEntryType.OpeningBalance => L["ledger.opening"],
+        LedgerEntryType.ServicePayment => L["ledger.payment"],
+        LedgerEntryType.ServiceEarning => L["ledger.earning"],
+        LedgerEntryType.Commission => L["ledger.commission"],
         _ => t.ToString()
     };
 

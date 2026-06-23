@@ -1,22 +1,28 @@
 @implements IDisposable
 @inject AuthState Auth
 @inject ApiClient Api
+@inject Loc L
+@inject NavigationManager Nav
 
 <header class="zk-nav">
     <div class="zk-nav-inner">
         <BrandLogo Href="" Size="38" />
 
         <nav class="zk-nav-links @(menuOpen ? "open" : null)" @onclick="CloseMenu">
-            <NavLink href="" Match="NavLinkMatch.All">Ana sayfa</NavLink>
-            <NavLink href="listings">İlanlar</NavLink>
-            <NavLink href="bookings">Rezervasyonlarım</NavLink>
-            <NavLink href="wallet">Cüzdan</NavLink>
+            <NavLink href="" Match="NavLinkMatch.All">@L["nav.home"]</NavLink>
+            <NavLink href="listings">@L["nav.listings"]</NavLink>
+            <NavLink href="bookings">@L["nav.bookings"]</NavLink>
+            <NavLink href="wallet">@L["nav.wallet"]</NavLink>
         </nav>
 
         <div class="zk-nav-cta">
+            <button class="zk-lang" @onclick="SwitchLang" title="@L["lang.switchTo"]">
+                <i class="ti ti-world"></i> @L["lang.switchTo"]
+            </button>
+
             @if (Auth.IsAuthenticated)
             {
-                <a href="wallet" class="zk-balance-pill" title="Cüzdan bakiyen">
+                <a href="wallet" class="zk-balance-pill" title="@L["nav.wallet"]">
                     @if (balance is decimal b)
                     {
                         <ZkAmount Amount="b" />
@@ -28,15 +34,15 @@
                 </a>
                 <div class="zk-nav-user">
                     <span class="zk-nav-avatar">@Initials</span>
-                    <button class="zk-btn zk-btn-ghost zk-btn-sm" @onclick="Logout">Çıkış</button>
+                    <button class="zk-btn zk-btn-ghost zk-btn-sm" @onclick="Logout">@L["nav.logout"]</button>
                 </div>
             }
             else
             {
-                <a href="login" class="zk-btn zk-btn-primary zk-btn-sm">Giriş</a>
+                <a href="login" class="zk-btn zk-btn-primary zk-btn-sm">@L["nav.login"]</a>
             }
 
-            <button class="zk-nav-toggle" @onclick="ToggleMenu" aria-label="Menü">
+            <button class="zk-nav-toggle" @onclick="ToggleMenu" aria-label="Menu">
                 <i class="ti ti-menu-2"></i>
             </button>
         </div>
@@ -65,6 +71,14 @@
         if (!Auth.IsAuthenticated) { balance = null; return; }
         try { balance = (await Api.GetWalletAsync())?.Balance; }
         catch { balance = null; }
+    }
+
+    private void SwitchLang()
+    {
+        var rel = Nav.ToBaseRelativePath(Nav.Uri);
+        var redirect = "/" + rel;
+        var url = $"/Culture/Set?culture={L.OtherLang}&redirectUri={Uri.EscapeDataString(redirect)}";
+        Nav.NavigateTo(url, forceLoad: true); // tam yeniden yükleme -> kültür tazelenir
     }
 
     private void ToggleMenu() => menuOpen = !menuOpen;

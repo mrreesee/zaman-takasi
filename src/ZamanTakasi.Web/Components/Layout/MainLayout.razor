@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject Loc L
 
 <div class="zk-app">
     <NavMenu />
@@ -14,29 +15,26 @@
             <div class="zk-footer-grid">
                 <div>
                     <BrandLogo Href="" Size="40" OnDark="true" />
-                    <p class="zk-footer-tag">
-                        Zamanını paraya değil, zamana çeviren topluluk pazarı.
-                        Krediler kapalı devredir — nakit/TL'ye çevrilemez.
-                    </p>
+                    <p class="zk-footer-tag">@L["footer.tagline"]</p>
                 </div>
                 <div>
-                    <h4>Keşfet</h4>
+                    <h4>@L["footer.explore"]</h4>
                     <ul>
-                        <li><a href="">Ana sayfa</a></li>
-                        <li><a href="listings">İlanlar</a></li>
-                        <li><a href="bookings">Rezervasyonlarım</a></li>
-                        <li><a href="wallet">Cüzdan</a></li>
+                        <li><a href="">@L["nav.home"]</a></li>
+                        <li><a href="listings">@L["nav.listings"]</a></li>
+                        <li><a href="bookings">@L["nav.bookings"]</a></li>
+                        <li><a href="wallet">@L["nav.wallet"]</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4>Hesap</h4>
+                    <h4>@L["footer.account"]</h4>
                     <ul>
-                        <li><a href="login">Giriş</a></li>
-                        <li><a href="register">Kayıt ol</a></li>
+                        <li><a href="login">@L["nav.login"]</a></li>
+                        <li><a href="register">@L["nav.register"]</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="zk-footer-copy">© 2026 Zaman Takası</div>
+            <div class="zk-footer-copy">@L["footer.copyright"]</div>
         </div>
     </footer>
 </div>

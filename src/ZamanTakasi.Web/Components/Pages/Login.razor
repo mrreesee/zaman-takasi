@@ -2,43 +2,40 @@
 @inject ApiClient Api
 @inject AuthState Auth
 @inject NavigationManager Nav
+@inject Loc L
 
-<PageTitle>Giriş — Zaman Takası</PageTitle>
+<PageTitle>@L["auth.login.submit"] — Zaman Takası</PageTitle>
 
 <div class="zk-auth-wrap">
     <div class="zk-auth-card">
         <div class="zk-auth-head">
             <BrandLogo Href="" Size="46" ShowText="false" />
-            <h1>Tekrar hoş geldin</h1>
-            <p>Hesabına giriş yap ve takasa devam et.</p>
+            <h1>@L["auth.login.welcome"]</h1>
+            <p>@L["auth.login.sub"]</p>
         </div>
 
         <div class="zk-field">
-            <label>E-posta</label>
-            <input class="form-control" type="email" @bind="email" @bind:event="oninput" placeholder="ornek@demo.local" />
+            <label>@L["auth.email"]</label>
+            <input class="form-control" type="email" @bind="email" @bind:event="oninput" placeholder="@L["auth.emailPlaceholder"]" />
         </div>
         <div class="zk-field">
-            <label>Parola</label>
+            <label>@L["auth.password"]</label>
             <input class="form-control" type="password" @bind="password" @bind:event="oninput" @onkeydown="OnKey" placeholder="••••••••" />
         </div>
 
         <button class="zk-btn zk-btn-primary zk-block" @onclick="Submit" disabled="@busy">
-            @if (busy) { <span>Giriş yapılıyor…</span> } else { <span><i class="ti ti-login-2"></i> Giriş yap</span> }
+            @if (busy) { <span>@L["auth.login.submitting"]</span> } else { <span><i class="ti ti-login-2"></i> @L["auth.login.submit"]</span> }
         </button>
 
         @if (error is not null) { <div class="alert alert-danger zk-mt">@error</div> }
 
-        <div class="zk-demo-note">
-            <i class="ti ti-info-circle"></i> Demo: <b>alice@@demo.local</b> / <b>bob@@demo.local</b> — parola <b>Passw0rd!</b>
-        </div>
-
-        <div class="zk-auth-foot">Hesabın yok mu? <a href="register">Kayıt ol</a></div>
+        <div class="zk-auth-foot">@L["auth.login.noAccount"] <a href="register">@L["nav.register"]</a></div>
     </div>
 </div>
 
 @code {
-    private string email = "alice@demo.local";
-    private string password = "Passw0rd!";
+    private string email = "";
+    private string password = "";
     private string? error;
     private bool busy;
 

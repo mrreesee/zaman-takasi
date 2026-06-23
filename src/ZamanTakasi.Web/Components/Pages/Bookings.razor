@@ -2,38 +2,37 @@
 @using System.Globalization
 @inject ApiClient Api
 @inject AuthState Auth
+@inject Loc L
 
-<PageTitle>Rezervasyonlarım — Zaman Takası</PageTitle>
+<PageTitle>@L["nav.bookings"] — Zaman Takası</PageTitle>
 
 <div class="zk-page-head">
     <div>
-        <h1>Rezervasyonlarım</h1>
-        <p>Sağladığın ve aldığın hizmetleri buradan yönet.</p>
+        <h1>@L["nav.bookings"]</h1>
+        <p>@L["bookings.subtitle"]</p>
     </div>
 </div>
 
 @if (!ready)
 {
-    <p style="color:var(--zk-muted);">Yükleniyor…</p>
+    <p style="color:var(--zk-muted);">@L["common.loading"]</p>
 }
 else if (!Auth.IsAuthenticated)
 {
-    <div class="alert alert-warning">Bu sayfa için <a href="login">giriş</a> gerekli.</div>
+    <div class="alert alert-warning">@L["common.signInRequired"] <a href="login">@L["nav.login"]</a></div>
 }
 else
 {
     @if (err is not null) { <div class="alert alert-danger zk-mt">@err</div> }
 
-    <h3 class="zk-subhead"><i class="ti ti-arrow-down-left"></i> Gelen — hizmeti ben sağlıyorum</h3>
+    <h3 class="zk-subhead"><i class="ti ti-arrow-down-left"></i> @L["bookings.incoming"]</h3>
     @RenderList(incoming, asProvider: true)
 
-    <h3 class="zk-subhead"><i class="ti ti-arrow-up-right"></i> Giden — hizmeti ben alıyorum</h3>
+    <h3 class="zk-subhead"><i class="ti ti-arrow-up-right"></i> @L["bookings.outgoing"]</h3>
     @RenderList(outgoing, asProvider: false)
 }
 
 @code {
-    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-
     private bool ready;
     private string? err;
     private List<BookingDto> incoming = new();
@@ -60,7 +59,7 @@ else
     private RenderFragment RenderList(List<BookingDto> items, bool asProvider) => @<text>
         @if (items.Count == 0)
         {
-            <div class="zk-empty">Kayıt yok.</div>
+            <div class="zk-empty">@L["bookings.empty"]</div>
         }
         else
         {
@@ -69,23 +68,23 @@ else
                 <div class="zk-booking-row">
                     <div class="zk-booking-ic"><i class="ti ti-calendar-event"></i></div>
                     <div class="zk-booking-main">
-                        <div class="zk-booking-title">@FormatHours(b.Hours) saatlik hizmet</div>
-                        <div class="zk-booking-sub">@b.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", Tr)</div>
+                        <div class="zk-booking-title">@L.Fmt("bookings.hourService", FormatHours(b.Hours))</div>
+                        <div class="zk-booking-sub">@b.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm", CultureInfo.CurrentCulture)</div>
                     </div>
                     <ZkAmount Amount="b.CreditCost" />
                     <span class="zk-badge @StatusBadge(b.Status)"><i class="ti @StatusIcon(b.Status)"></i> @StatusName(b.Status)</span>
                     <div class="zk-booking-actions">
                         @if (asProvider && b.Status == BookingStatus.Pending)
                         {
-                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Do(() => Api.AcceptAsync(b.Id))">Kabul et</button>
+                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Do(() => Api.AcceptAsync(b.Id))">@L["bookings.accept"]</button>
                         }
                         @if (asProvider && b.Status == BookingStatus.Accepted)
                         {
-                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Do(() => Api.CompleteAsync(b.Id))">Tamamla</button>
+                            <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Do(() => Api.CompleteAsync(b.Id))">@L["bookings.complete"]</button>
                         }
                         @if (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Accepted)
                         {
-                            <button class="zk-btn zk-btn-ghost zk-btn-sm" @onclick="() => Do(() => Api.CancelAsync(b.Id))">İptal</button>
+                            <button class="zk-btn zk-btn-ghost zk-btn-sm" @onclick="() => Do(() => Api.CancelAsync(b.Id))">@L["bookings.cancel"]</button>
                         }
                     </div>
                 </div>
@@ -100,14 +99,14 @@ else
         catch (ApiException ex) { err = ex.Message; }
     }
 
-    private static string FormatHours(decimal h) => h.ToString("0.##", Tr);
+    private static string FormatHours(decimal h) => h.ToString("0.##", CultureInfo.CurrentCulture);
 
-    private static string StatusName(BookingStatus s) => s switch
+    private string StatusName(BookingStatus s) => s switch
     {
-        BookingStatus.Pending => "Bekliyor",
-        BookingStatus.Accepted => "Kabul edildi",
-        BookingStatus.Completed => "Tamamlandı",
-        BookingStatus.Cancelled => "İptal edildi",
+        BookingStatus.Pending => L["status.pending"],
+        BookingStatus.Accepted => L["status.accepted"],
+        BookingStatus.Completed => L["status.completed"],
+        BookingStatus.Cancelled => L["status.cancelled"],
         _ => s.ToString()
     };
 

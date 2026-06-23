@@ -1,4 +1,7 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 using ZamanTakasi.Web.Components;
+using ZamanTakasi.Web.Localization;
 using ZamanTakasi.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +19,26 @@ var apiBase = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5053";
 builder.Services.AddHttpClient<ApiClient>(c => c.BaseAddress = new Uri(apiBase));
 builder.Services.AddScoped<AuthState>();
 
+// i18n: çeviri servisi.
+builder.Services.AddSingleton<Loc>();
+
 var app = builder.Build();
+
+// Kültür: varsayılan İngilizce; cookie ya da tarayıcı diline göre (en/tr). Switcher cookie'yi yazar.
+var supportedCultures = Translations.SupportedCultures.Select(c => new CultureInfo(c)).ToList();
+var locOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(Translations.DefaultCulture),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
+// Ana dil İngilizce: tarayıcı dilini OTOMATİK algılama; yalnızca kullanıcı seçimi (cookie) + URL geçerli.
+locOptions.RequestCultureProviders = new List<IRequestCultureProvider>
+{
+    new QueryStringRequestCultureProvider(),
+    new CookieRequestCultureProvider()
+};
+app.UseRequestLocalization(locOptions);
 
 if (!app.Environment.IsDevelopment())
 {
@@ -27,6 +49,19 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
 app.UseAntiforgery();
+
+// Dil değiştir: cookie yazıp geldiği sayfaya döner (tam yeniden yükleme — Blazor Server kültürü tazeler).
+app.MapGet("/Culture/Set", (string culture, string? redirectUri, HttpContext http) =>
+{
+    if (Translations.SupportedCultures.Contains(culture))
+    {
+        http.Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+            new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, Path = "/" });
+    }
+    return Results.LocalRedirect(string.IsNullOrWhiteSpace(redirectUri) ? "/" : redirectUri);
+});
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
