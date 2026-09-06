@@ -1,0 +1,50 @@
+@page "/check-email"
+@inject ApiClient Api
+@inject Loc L
+
+<PageTitle>@L["auth.checkEmail.title"] — Zaman Takası</PageTitle>
+
+<div class="zk-auth-wrap">
+    <div class="zk-auth-card">
+        <div class="zk-auth-head">
+            <div style="font-size:42px; line-height:1; margin-bottom:8px;"><i class="ti ti-mail-fast"></i></div>
+            <h1>@L["auth.checkEmail.title"]</h1>
+            <p>@L.Fmt("auth.checkEmail.sub", Email ?? "")</p>
+        </div>
+
+        <div class="alert alert-info zk-mt">@L["auth.checkEmail.hint"]</div>
+
+        @if (resendSent)
+        {
+            <div class="alert alert-success zk-mt"><i class="ti ti-mail-check"></i> @L["auth.confirm.resent"]</div>
+        }
+        else
+        {
+            <button class="zk-btn zk-block zk-mt" @onclick="Resend" disabled="@busy">
+                <i class="ti ti-mail-forward"></i> @L["auth.confirm.resend"]
+            </button>
+        }
+
+        <div class="zk-auth-foot"><a href="login">@L["auth.login.submit"]</a></div>
+    </div>
+</div>
+
+@code {
+    [Parameter, SupplyParameterFromQuery] public string? Email { get; set; }
+
+    private bool busy;
+    private bool resendSent;
+
+    private async Task Resend()
+    {
+        if (string.IsNullOrWhiteSpace(Email)) return;
+        busy = true;
+        try
+        {
+            await Api.ResendConfirmationAsync(new ResendConfirmationRequest(Email!, L.Lang));
+            resendSent = true; // cevap her zaman 200
+        }
+        catch (ApiException) { resendSent = true; /* sızdırma yok: yine de "gönderildi" göster */ }
+        finally { busy = false; }
+    }
+}

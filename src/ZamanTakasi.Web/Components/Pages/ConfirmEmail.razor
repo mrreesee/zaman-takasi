@@ -1,0 +1,72 @@
+@page "/confirm-email"
+@inject ApiClient Api
+@inject AuthState Auth
+@inject NavigationManager Nav
+@inject Loc L
+
+<PageTitle>@L["auth.confirm.title"] — Zaman Takası</PageTitle>
+
+<div class="zk-auth-wrap">
+    <div class="zk-auth-card">
+        <div class="zk-auth-head">
+            <BrandLogo Href="" Size="46" ShowText="false" />
+            <h1>@L["auth.confirm.title"]</h1>
+        </div>
+
+        @switch (state)
+        {
+            case State.Processing:
+                <div class="alert alert-info zk-mt"><i class="ti ti-loader"></i> @L["auth.confirm.processing"]</div>
+                break;
+
+            case State.Success:
+                <div class="alert alert-success zk-mt"><i class="ti ti-circle-check"></i> @L["auth.confirm.success"]</div>
+                <button class="zk-btn zk-btn-primary zk-block zk-mt" @onclick="@(() => Nav.NavigateTo("/listings"))">
+                    <i class="ti ti-arrow-right"></i> @L["auth.confirm.continue"]
+                </button>
+                break;
+
+            case State.Failed:
+                <div class="alert alert-danger zk-mt">@(error ?? L["auth.confirm.failed"])</div>
+                <div class="zk-auth-foot"><a href="login">@L["auth.login.submit"]</a></div>
+                break;
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, SupplyParameterFromQuery] public string? UserId { get; set; }
+    [Parameter, SupplyParameterFromQuery] public string? Token { get; set; }
+
+    private enum State { Processing, Success, Failed }
+    private State state = State.Processing;
+    private string? error;
+    private bool _done;
+
+    // Onaylama JS interop (ProtectedLocalStorage) gerektirdiği için ilk render sonrası çalıştırılır.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _done) return;
+        _done = true;
+
+        if (!Guid.TryParse(UserId, out var uid) || string.IsNullOrWhiteSpace(Token))
+        {
+            state = State.Failed;
+            StateHasChanged();
+            return;
+        }
+
+        try
+        {
+            var resp = await Api.ConfirmEmailAsync(new ConfirmEmailRequest(uid, Token!));
+            await Auth.SignInAsync(resp!); // onay başarılı -> otomatik giriş
+            state = State.Success;
+        }
+        catch (ApiException ex)
+        {
+            error = ex.Message;
+            state = State.Failed;
+        }
+        StateHasChanged();
+    }
+}

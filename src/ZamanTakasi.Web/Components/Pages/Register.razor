@@ -52,8 +52,14 @@
         error = null; busy = true;
         try
         {
-            var resp = await Api.RegisterAsync(new RegisterRequest(email, password, displayName));
-            await Auth.SignInAsync(resp!);
+            var resp = await Api.RegisterAsync(new RegisterRequest(email, password, displayName, L.Lang));
+            if (resp!.RequiresEmailConfirmation)
+            {
+                // Katı kapı: onay maili gönderildi; kullanıcı "e-postanı kontrol et" sayfasına gider (henüz giriş yok).
+                Nav.NavigateTo($"/check-email?email={Uri.EscapeDataString(email)}");
+                return;
+            }
+            await Auth.SignInAsync(resp.Auth!);
             Nav.NavigateTo("/listings");
         }
         catch (ApiException ex) { error = ex.Message; }

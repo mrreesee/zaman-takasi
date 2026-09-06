@@ -23,6 +23,13 @@ public interface INotificationService
     /// <summary>Booking Completed olduğunda hizmeti isteyene (requester) bildirim.</summary>
     Task SendBookingCompletedAsync(Guid requesterUserId, Booking booking, CancellationToken ct = default);
 
+    /// <summary>
+    /// Kayıt sonrası e-posta doğrulama bağlantısını gönderir. <paramref name="confirmationUrl"/>
+    /// API tarafında (App:PublicUrl + token) tam olarak kurulur; gönderici yalnızca iletir.
+    /// <paramref name="lang"/> iki harfli arayüz dilidir ("en"/"tr") — e-posta ona göre yazılır.
+    /// </summary>
+    Task SendEmailConfirmationAsync(string toEmail, string displayName, string confirmationUrl, string lang, CancellationToken ct = default);
+
     // TODO: password reset — Identity şifre sıfırlama akışı için buraya
     // SendPasswordResetAsync(Guid userId, string resetToken, CancellationToken ct = default) eklenecek.
     // Mevcut booking çağrıları etkilenmeden eklenebilir (arayüz olay-özgü olduğu için).

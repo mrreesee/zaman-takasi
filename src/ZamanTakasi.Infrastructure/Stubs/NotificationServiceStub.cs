@@ -25,6 +25,15 @@ public sealed class NotificationServiceStub : INotificationService
     public Task SendBookingCompletedAsync(Guid requesterUserId, Booking booking, CancellationToken ct = default)
         => LogPretend("BookingCompleted", requesterUserId, booking);
 
+    public Task SendEmailConfirmationAsync(string toEmail, string displayName, string confirmationUrl, string lang, CancellationToken ct = default)
+    {
+        // Stub: gerçek e-posta göndermez. Doğrulama bağlantısını loglar ki yerelde (Resend'siz) akış test edilebilsin.
+        _logger.LogInformation(
+            "Bildirim (stub) e-posta doğrulama: alıcı {Email} | dil {Lang} | bağlantı {ConfirmationUrl}",
+            toEmail, lang, confirmationUrl);
+        return Task.CompletedTask;
+    }
+
     private Task LogPretend(string notification, Guid recipientUserId, Booking booking)
     {
         _logger.LogInformation(

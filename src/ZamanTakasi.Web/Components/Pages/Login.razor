@@ -29,6 +29,23 @@
 
         @if (error is not null) { <div class="alert alert-danger zk-mt">@error</div> }
 
+        @if (showResend)
+        {
+            <div class="alert alert-warning zk-mt">
+                <div>@L["auth.confirm.needed"]</div>
+                @if (resendSent)
+                {
+                    <div class="zk-mt"><i class="ti ti-mail-check"></i> @L["auth.confirm.resent"]</div>
+                }
+                else
+                {
+                    <button class="zk-btn zk-block zk-mt" @onclick="Resend" disabled="@busy">
+                        <i class="ti ti-mail-forward"></i> @L["auth.confirm.resend"]
+                    </button>
+                }
+            </div>
+        }
+
         <div class="zk-auth-foot">@L["auth.login.noAccount"] <a href="register">@L["nav.register"]</a></div>
     </div>
 </div>
@@ -38,6 +55,8 @@
     private string password = "";
     private string? error;
     private bool busy;
+    private bool showResend;
+    private bool resendSent;
 
     private async Task OnKey(KeyboardEventArgs e)
     {
@@ -46,12 +65,29 @@
 
     private async Task Submit()
     {
-        error = null; busy = true;
+        error = null; showResend = false; resendSent = false; busy = true;
         try
         {
             var resp = await Api.LoginAsync(new LoginRequest(email, password));
             await Auth.SignInAsync(resp!);
             Nav.NavigateTo("/listings");
+        }
+        catch (ApiException ex)
+        {
+            error = ex.Message;
+            // 403 = e-posta doğrulanmamış (katı kapı açık). Kullanıcıya "tekrar gönder" sun.
+            if (ex.StatusCode == 403) showResend = true;
+        }
+        finally { busy = false; }
+    }
+
+    private async Task Resend()
+    {
+        busy = true;
+        try
+        {
+            await Api.ResendConfirmationAsync(new ResendConfirmationRequest(email, L.Lang));
+            resendSent = true; // cevap her zaman 200 (hesap varlığını sızdırmaz)
         }
         catch (ApiException ex) { error = ex.Message; }
         finally { busy = false; }

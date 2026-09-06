@@ -24,8 +24,10 @@ public sealed class ApiClient
     }
 
     // ---- Auth ----
-    public Task<AuthResponse?> RegisterAsync(RegisterRequest r) => SendAsync<AuthResponse>(HttpMethod.Post, "api/auth/register", r);
+    public Task<RegisterResponse?> RegisterAsync(RegisterRequest r) => SendAsync<RegisterResponse>(HttpMethod.Post, "api/auth/register", r);
     public Task<AuthResponse?> LoginAsync(LoginRequest r) => SendAsync<AuthResponse>(HttpMethod.Post, "api/auth/login", r);
+    public Task<AuthResponse?> ConfirmEmailAsync(ConfirmEmailRequest r) => SendAsync<AuthResponse>(HttpMethod.Post, "api/auth/confirm-email", r);
+    public Task ResendConfirmationAsync(ResendConfirmationRequest r) => SendAsync<object>(HttpMethod.Post, "api/auth/resend-confirmation", r);
 
     // ---- Listings ----
     public Task<List<ListingDto>?> GetListingsAsync() => SendAsync<List<ListingDto>>(HttpMethod.Get, "api/listings");

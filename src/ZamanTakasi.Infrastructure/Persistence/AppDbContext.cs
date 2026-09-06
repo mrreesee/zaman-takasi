@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,10 @@ using ZamanTakasi.Infrastructure.Identity;
 
 namespace ZamanTakasi.Infrastructure.Persistence;
 
-public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+// IDataProtectionKeyContext: ASP.NET Identity'nin ürettiği e-posta doğrulama token'ları Data Protection
+// anahtarlarıyla imzalanır. Bu anahtarlar container dosya sistemine yazılırsa her redeploy'da değişir ve
+// bekleyen doğrulama linkleri geçersizleşir. Anahtarları Postgres'e kalıcı yazarak bunu önlüyoruz.
+public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IDataProtectionKeyContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -16,6 +20,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
     public DbSet<ServiceListing> Listings => Set<ServiceListing>();
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+
+    // Data Protection anahtarları (Identity token imzalama). Kullanıcı verisi değildir.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
