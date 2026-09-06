@@ -5,6 +5,10 @@ namespace ZamanTakasi.Core.Entities;
 
 public class ServiceListing
 {
+    // DB sütun sınırlarıyla (AppDbContext) aynı; burada doğrulanır ki API 500 değil 400 döndürsün.
+    public const int TitleMaxLength = 160;
+    public const int DescriptionMaxLength = 2000;
+
     public Guid Id { get; private set; }
     public Guid ProviderUserId { get; private set; }
     public string Title { get; private set; } = string.Empty;
@@ -21,6 +25,9 @@ public class ServiceListing
     {
         if (providerUserId == Guid.Empty) throw new DomainException("ProviderUserId zorunlu.");
         if (string.IsNullOrWhiteSpace(title)) throw new DomainException("Title zorunlu.");
+        if (title.Trim().Length > TitleMaxLength) throw new DomainException($"Title en fazla {TitleMaxLength} karakter olabilir.");
+        if ((description ?? string.Empty).Trim().Length > DescriptionMaxLength)
+            throw new DomainException($"Description en fazla {DescriptionMaxLength} karakter olabilir.");
 
         Id = Guid.NewGuid();
         ProviderUserId = providerUserId;

@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ZamanTakasi.Shared\ZamanTakasi.Shared.csproj" />
+    <!-- Yalnizca NpgsqlConnectionResolver (DATABASE_URL -> Npgsql) icin; Web veriyi API uzerinden tuketmeye devam eder. -->
+    <ProjectReference Include="..\ZamanTakasi.Infrastructure\ZamanTakasi.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

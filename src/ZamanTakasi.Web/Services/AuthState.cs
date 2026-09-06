@@ -37,6 +37,12 @@ public sealed class AuthState
                 Changed?.Invoke();
             }
         }
+        catch (System.Security.Cryptography.CryptographicException)
+        {
+            // Saklanan veri artık çözülemiyor (anahtar değişti). Bozuk kaydı sil ki her sayfada tekrar patlamasın.
+            _loaded = true;
+            try { await _storage.DeleteAsync(Key); } catch { /* yok say */ }
+        }
         catch
         {
             // Prerender sırasında JS interop yok; _loaded=false kalır, devre başlayınca tekrar denenir.

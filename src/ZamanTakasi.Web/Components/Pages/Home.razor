@@ -1,5 +1,4 @@
 @page "/"
-@using System.Globalization
 @inject AuthState Auth
 @inject Loc L
 
@@ -22,14 +21,7 @@
                     </a>
                 </div>
                 <div class="zk-trust">
-                    <div class="zk-stack">
-                        <span style="background:#1fb6d4; color:#04222b;">B</span>
-                        <span style="background:#6a4fd0; color:#fff;">C</span>
-                        <span style="background:#2e9c54; color:#fff;">D</span>
-                        <span style="background:#e0a52e; color:#3a2700;">E</span>
-                        <span style="background:#13263d; color:#cfe0f2; font-size:11px;">+1k</span>
-                    </div>
-                    <div class="zk-trust-txt"><b>@L.Fmt("home.trust", 1200)</b> · <span class="stars">★★★★★</span> <b>@Rating</b></div>
+                    <div class="zk-trust-txt"><i class="ti ti-lock"></i> @L["home.trust"]</div>
                 </div>
             </div>
 
@@ -37,7 +29,7 @@
                 <div class="zk-glass zk-glass-1">
                     <div class="zk-glass-row">
                         <div class="zk-glass-ic" style="background:rgba(31,182,212,0.18); color:var(--zk-cyan-bright);"><i class="ti ti-code"></i></div>
-                        <div><b>@L["home.demo.web"]</b><small>Bob · ★ @FmtNum(4.9m)</small></div>
+                        <div><b>@L["home.demo.web"]</b><small>@L["home.demo.tag"] · Verified ×2</small></div>
                     </div>
                     <div class="zk-glass-foot">
                         <ZkAmount Amount="2" /> <span class="zk-btn zk-btn-primary zk-btn-sm">@L["home.demo.book"]</span>
@@ -46,7 +38,7 @@
                 <div class="zk-glass zk-glass-2">
                     <div class="zk-glass-row">
                         <div class="zk-glass-ic" style="background:rgba(224,165,46,0.18); color:#e0a52e;"><i class="ti ti-palette"></i></div>
-                        <div><b>@L["home.demo.design"]</b><small>Ceren · ★ @FmtNum(5m)</small></div>
+                        <div><b>@L["home.demo.design"]</b><small>@L["home.demo.tag"] · Professional ×3</small></div>
                     </div>
                     <div class="zk-glass-foot">
                         <ZkAmount Amount="3" /> <span class="zk-btn zk-btn-primary zk-btn-sm">@L["home.demo.book"]</span>
@@ -55,7 +47,7 @@
                 <div class="zk-glass zk-glass-3">
                     <div class="zk-glass-row">
                         <div class="zk-glass-ic" style="background:rgba(46,156,84,0.18); color:#4cc878;"><i class="ti ti-language"></i></div>
-                        <div><b>@L["home.demo.lang"]</b><small>Deniz · ★ @FmtNum(4.7m)</small></div>
+                        <div><b>@L["home.demo.lang"]</b><small>@L["home.demo.tag"] · Basic ×1</small></div>
                     </div>
                     <div class="zk-glass-foot">
                         <ZkAmount Amount="1" /> <span class="zk-btn zk-btn-primary zk-btn-sm">@L["home.demo.book"]</span>
@@ -138,10 +130,6 @@
 </section>
 
 @code {
-    private string Rating => FmtNum(4.9m);
-
-    private static string FmtNum(decimal v) => v.ToString("0.#", CultureInfo.CurrentCulture);
-
     protected override async Task OnInitializedAsync()
     {
         await Auth.EnsureLoadedAsync();

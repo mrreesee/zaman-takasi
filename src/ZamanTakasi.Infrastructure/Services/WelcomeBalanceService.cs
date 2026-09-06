@@ -53,11 +53,31 @@ public sealed class WelcomeBalanceService : IWelcomeBalanceService
             return false;
         }
 
-        _db.LedgerEntries.Add(new LedgerEntry(userId, _amount, LedgerEntryType.OpeningBalance));
-        await _db.SaveChangesAsync(ct);
+        var entry = new LedgerEntry(userId, _amount, LedgerEntryType.OpeningBalance);
+        _db.LedgerEntries.Add(entry);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // Yarış: iki eşzamanlı onay aynı anda "henüz yok" gördü. DB'deki kısmi tekil indeks
+            // (UserId WHERE EntryType = OpeningBalance) ikinciyi reddeder; sessizce no-op.
+            _db.Entry(entry).State = EntityState.Detached;
+            _logger.LogWarning("Hoş Geldin bakiyesi yarışta atlandı (tekil indeks): kullanıcı {UserId}", userId);
+            return false;
+        }
 
         // Suistimal farkındalığı: her veriliş userId + miktar ile structured loglanır.
         _logger.LogInformation("Hoş Geldin bakiyesi verildi: kullanıcı {UserId}, miktar {Amount} ZK", userId, _amount);
         return true;
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException ex)
+    {
+        for (Exception? e = ex; e is not null; e = e.InnerException)
+            if (e is Npgsql.PostgresException pg && pg.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation)
+                return true;
+        return false;
     }
 }

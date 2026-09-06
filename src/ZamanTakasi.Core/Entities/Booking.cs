@@ -6,6 +6,9 @@ namespace ZamanTakasi.Core.Entities;
 
 public class Booking
 {
+    /// <summary>Tek rezervasyonda üst sınır; devasa "bekleyen" taleplerle ilan sahibinin rahatsız edilmesini önler.</summary>
+    public const decimal MaxHours = 100m;
+
     public Guid Id { get; private set; }
     public Guid ListingId { get; private set; }
     public Guid RequesterUserId { get; private set; }
@@ -25,6 +28,7 @@ public class Booking
     {
         if (listingId == Guid.Empty) throw new DomainException("ListingId zorunlu.");
         if (hours <= 0) throw new DomainException("Hours 0'dan büyük olmalı.");
+        if (hours > MaxHours) throw new DomainException($"Hours en fazla {MaxHours:0} olabilir.");
         if (requesterUserId == providerUserId) throw new DomainException("Kendi ilanını rezerve edemezsin.");
 
         Id = Guid.NewGuid();

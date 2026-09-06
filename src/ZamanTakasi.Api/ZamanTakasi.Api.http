@@ -1,6 +1,13 @@
 @ZamanTakasi.Api_HostAddress = http://localhost:5053
 
-GET {{ZamanTakasi.Api_HostAddress}}/weatherforecast/
+GET {{ZamanTakasi.Api_HostAddress}}/api/listings
 Accept: application/json
+
+###
+
+POST {{ZamanTakasi.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "alice@demo.local", "password": "Passw0rd!" }
 
 ###

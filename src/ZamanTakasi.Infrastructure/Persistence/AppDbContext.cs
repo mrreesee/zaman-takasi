@@ -71,6 +71,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             e.Property(x => x.Amount).HasPrecision(18, 2);
             e.HasIndex(x => x.UserId);          // bakiye = UserId'ye göre toplam
             e.HasIndex(x => x.BookingId);
+            // Kullanıcı başına EN FAZLA BİR OpeningBalance (Hoş Geldin) kaydı — yarış koşulunda DB son kapı.
+            e.HasIndex(x => x.UserId, "IX_LedgerEntries_UserId_OpeningBalance")
+                .IsUnique()
+                .HasFilter("\"EntryType\" = 0");
             // Kayıtlar DEĞİŞMEZ: uygulama katmanı asla update/delete yapmaz.
         });
     }

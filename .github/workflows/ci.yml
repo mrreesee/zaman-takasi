@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest # Docker hazir: Testcontainers (Postgres) testleri burada gercekten calisir
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Restore
+        run: dotnet restore ZamanTakasi.slnx
+      - name: Build
+        run: dotnet build ZamanTakasi.slnx -c Release --no-restore
+      - name: Test
+        run: dotnet test tests/ZamanTakasi.Tests/ZamanTakasi.Tests.csproj -c Release --no-build --logger "trx;LogFileName=results.trx"
+      - name: Fail if any test was skipped
+        # Eszamanlilik testleri Docker yoksa sessizce atlanir; CI icinde atlama = hata.
+        run: |
+          if grep -q 'outcome="NotExecuted"' tests/ZamanTakasi.Tests/TestResults/results.trx; then
+            echo "::error::Atlanan test var (Docker/Testcontainers calismadi)"; exit 1; fi
+      - name: Vulnerable packages (production projects)
+        run: |
+          for p in src/ZamanTakasi.Api src/ZamanTakasi.Web src/ZamanTakasi.Infrastructure; do
+            dotnet list "$p" package --vulnerable --include-transitive | tee /tmp/vuln.txt
+            if grep -qE "Critical|High" /tmp/vuln.txt; then echo "::error::$p icinde zafiyetli paket"; exit 1; fi
+          done
