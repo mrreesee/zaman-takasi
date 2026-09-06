@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -37,6 +39,25 @@ try
     // Altyapı: EF Core (PostgreSQL/Npgsql), Identity, ledger/booking servisleri, kapsam-dışı stub'lar.
     builder.Services.AddInfrastructure(builder.Configuration, connectionString);
     builder.Services.AddScoped<JwtTokenService>();
+
+    // Kimlik uçları için eşikler: (1) uç geneli sabit pencere (Resend kotası/DoS), (2) e-posta bazlı sayaç (AuthThrottle).
+    builder.Services.AddMemoryCache();
+    builder.Services.AddSingleton<AuthThrottle>();
+    builder.Services.AddRateLimiter(o =>
+    {
+        o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        o.OnRejected = async (ctx, ct) =>
+        {
+            ctx.HttpContext.Response.ContentType = "application/json";
+            await ctx.HttpContext.Response.WriteAsJsonAsync("Çok fazla istek. Lütfen biraz sonra tekrar dene.", ct);
+        };
+        o.AddFixedWindowLimiter("auth", l =>
+        {
+            l.PermitLimit = 120;
+            l.Window = TimeSpan.FromMinutes(1);
+            l.QueueLimit = 0;
+        });
+    });
 
     builder.Services.AddControllers().AddJsonOptions(o =>
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -96,9 +117,14 @@ try
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Zaman Takası API v1"));
+    // Swagger yalnızca geliştirmede (ya da Swagger:Enabled=true ile açıkça). Canlıda API yüzeyi belgesi açığa çıkmasın.
+    if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Enabled"))
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Zaman Takası API v1"));
+    }
 
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

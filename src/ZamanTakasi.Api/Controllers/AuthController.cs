@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -16,8 +17,19 @@ namespace ZamanTakasi.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting("auth")] // uç geneli sabit pencere (Program.cs) — Resend kotası ve kaba kuvvete karşı üst sınır
 public sealed class AuthController : ControllerBase
 {
+    // E-posta bazlı eşikler (AuthThrottle). IP kullanılmaz: Web → API çağrıları aynı iç adresten gelir.
+    private const int LoginAttemptsPerWindow = 20;          // hesap kilidi (5 hatalı) asıl koruma; bu, üst sınır
+    private const int RegistrationsPerWindow = 30;          // uç geneli, 10 dk
+    private const int ResendPerEmailPerWindow = 3;          // aynı e-postaya 15 dk'da en fazla 3 onay maili
+    private const int ResendGlobalPerWindow = 40;           // uç geneli, 1 saat (Resend ücretsiz kota: 100/gün)
+    private static readonly TimeSpan ShortWindow = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan ResendWindow = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan HourWindow = TimeSpan.FromHours(1);
+    private const string TooManyMessage = "Çok fazla deneme. Lütfen biraz sonra tekrar dene.";
+
     private readonly UserManager<ApplicationUser> _users;
     private readonly AppDbContext _db;
     private readonly JwtTokenService _jwt;
@@ -25,6 +37,8 @@ public sealed class AuthController : ControllerBase
     private readonly INotificationService _notifications;
     private readonly AuthOptions _authOptions;
     private readonly IConfiguration _config;
+    private readonly AuthThrottle _throttle;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         UserManager<ApplicationUser> users,
@@ -33,7 +47,9 @@ public sealed class AuthController : ControllerBase
         IWelcomeBalanceService welcome,
         INotificationService notifications,
         IOptions<AuthOptions> authOptions,
-        IConfiguration config)
+        IConfiguration config,
+        AuthThrottle throttle,
+        ILogger<AuthController> logger)
     {
         _users = users;
         _db = db;
@@ -42,6 +58,8 @@ public sealed class AuthController : ControllerBase
         _notifications = notifications;
         _authOptions = authOptions.Value;
         _config = config;
+        _throttle = throttle;
+        _logger = logger;
     }
 
     /// <summary>Yeni kullanıcı: ApplicationUser (kimlik) + domain User (profil) AYNI transaction'da, AYNI Guid Id ile.</summary>
@@ -50,6 +68,14 @@ public sealed class AuthController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password) || string.IsNullOrWhiteSpace(req.DisplayName))
             return BadRequest("Email, Password ve DisplayName zorunlu.");
+        if (req.DisplayName.Trim().Length > ZamanTakasi.Core.Entities.User.DisplayNameMaxLength)
+            return BadRequest($"Görünen ad en fazla {ZamanTakasi.Core.Entities.User.DisplayNameMaxLength} karakter olabilir.");
+
+        if (!_throttle.TryAcquire("register:global", RegistrationsPerWindow, ShortWindow))
+        {
+            _logger.LogWarning("Kayıt eşiği aşıldı (uç geneli).");
+            return StatusCode(StatusCodes.Status429TooManyRequests, TooManyMessage);
+        }
 
         await using var tx = await _db.Database.BeginTransactionAsync();
 
@@ -83,9 +109,32 @@ public sealed class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest req)
     {
-        var user = await _users.FindByEmailAsync(req.Email);
-        if (user is null || !await _users.CheckPasswordAsync(user, req.Password))
+        if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
             return Unauthorized("E-posta veya parola hatalı.");
+
+        if (!_throttle.TryAcquire(AuthThrottle.EmailKey("login", req.Email), LoginAttemptsPerWindow, ShortWindow))
+            return StatusCode(StatusCodes.Status429TooManyRequests, TooManyMessage);
+
+        var user = await _users.FindByEmailAsync(req.Email);
+        if (user is null)
+            return Unauthorized("E-posta veya parola hatalı.");
+
+        // Hesap kilidi: CheckPasswordAsync kilidi kendiliğinden uygulamaz; burada elle uygulanır.
+        if (await _users.IsLockedOutAsync(user))
+        {
+            _logger.LogWarning("Kilitli hesaba giriş denemesi: kullanıcı {UserId}", user.Id);
+            return StatusCode(StatusCodes.Status429TooManyRequests,
+                "Çok fazla hatalı deneme; hesap geçici olarak kilitlendi. 15 dakika sonra tekrar dene.");
+        }
+
+        if (!await _users.CheckPasswordAsync(user, req.Password))
+        {
+            await _users.AccessFailedAsync(user); // sayaç; eşikte kilit (Lockout seçenekleri)
+            return Unauthorized("E-posta veya parola hatalı.");
+        }
+
+        if (user.AccessFailedCount > 0)
+            await _users.ResetAccessFailedCountAsync(user);
 
         // Katı kapı açıkken doğrulanmamış e-posta ile giriş engellenir (403 -> Web "tekrar gönder" sunar).
         if (_authOptions.RequireEmailConfirmation && !user.EmailConfirmed)
@@ -136,6 +185,15 @@ public sealed class AuthController : ControllerBase
     {
         if (!string.IsNullOrWhiteSpace(req.Email))
         {
+            // Eşikler: aynı e-postaya kısa sürede tekrar tekrar mail atılmasın; uç geneli Resend kotası korunsun.
+            // Aşımda da 200 döner (hesap varlığı sızmasın) — yalnızca gönderim atlanır ve loglanır.
+            if (!_throttle.TryAcquire(AuthThrottle.EmailKey("resend", req.Email), ResendPerEmailPerWindow, ResendWindow)
+                || !_throttle.TryAcquire("resend:global", ResendGlobalPerWindow, HourWindow))
+            {
+                _logger.LogWarning("Onay maili tekrar gönderme eşiği aşıldı; gönderim atlandı.");
+                return Ok();
+            }
+
             var user = await _users.FindByEmailAsync(req.Email);
             if (user is not null && !user.EmailConfirmed)
             {

@@ -27,9 +27,14 @@ public static class DependencyInjection
         services.AddIdentityCore<ApplicationUser>(o =>
         {
             o.User.RequireUniqueEmail = true;
-            o.Password.RequiredLength = 6;
+            o.Password.RequiredLength = 8;
             o.Password.RequireNonAlphanumeric = false;
             o.Password.RequireUppercase = false;
+            // Kaba kuvvet koruması: 5 hatalı denemede 15 dk kilit. NOT: UserManager.CheckPasswordAsync kilidi
+            // KENDİLİĞİNDEN uygulamaz; AuthController.Login IsLockedOut/AccessFailed çağrılarıyla uygular.
+            o.Lockout.AllowedForNewUsers = true;
+            o.Lockout.MaxFailedAccessAttempts = 5;
+            o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             // E-posta doğrulama token üreticisi (GenerateEmailConfirmationTokenAsync) için gerekli.
             o.SignIn.RequireConfirmedEmail = false; // kapı uygulama katmanında AuthOptions ile yönetilir
         })

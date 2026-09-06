@@ -44,7 +44,8 @@ public static class Translations
         ["home.lead"] = "Share your skills, get what you need. 1 hour of service = 1 time credit. Fair, transparent, a closed-loop community market.",
         ["home.cta.start"] = "Get started",
         ["home.cta.how"] = "How it works?",
-        ["home.trust"] = "{0:N0}+ members trading",
+        ["home.trust"] = "Closed-loop credits · no money involved · pilot community",
+        ["home.demo.tag"] = "Example listing",
         // home steps
         ["home.steps.eyebrow"] = "How it works",
         ["home.steps.title"] = "Three steps to trade",
@@ -139,7 +140,7 @@ public static class Translations
         ["auth.register.submit"] = "Sign up",
         ["auth.register.submitting"] = "Creating…",
         ["auth.register.haveAccount"] = "Already have an account?",
-        ["auth.passwordHint"] = "At least 6 characters, with at least 1 lowercase letter and 1 digit.",
+        ["auth.passwordHint"] = "At least 8 characters, with at least 1 lowercase letter and 1 digit.",
         // email confirmation
         ["auth.checkEmail.title"] = "Check your inbox",
         ["auth.checkEmail.sub"] = "We sent a confirmation link to {0}.",
@@ -156,6 +157,9 @@ public static class Translations
         ["notfound.title"] = "Page not found",
         ["notfound.body"] = "The content you're looking for may have moved or never existed.",
         ["notfound.home"] = "Back to home",
+        // error ui
+        ["error.unexpected"] = "An unexpected error occurred.",
+        ["error.reload"] = "Reload",
     };
 
     // ---- Türkçe ----
@@ -181,7 +185,8 @@ public static class Translations
         ["home.lead"] = "Yeteneğini paylaş, ihtiyacın olanı al. 1 saat hizmet = 1 zaman kredisi. Adil, şeffaf, kapalı devre bir topluluk pazarı.",
         ["home.cta.start"] = "Hemen başla",
         ["home.cta.how"] = "Nasıl çalışır?",
-        ["home.trust"] = "{0:N0}+ üye takas yapıyor",
+        ["home.trust"] = "Kapalı devre kredi · para yok · pilot topluluk",
+        ["home.demo.tag"] = "Örnek ilan",
         ["home.steps.eyebrow"] = "Nasıl çalışır",
         ["home.steps.title"] = "Üç adımda takas",
         ["home.steps.sub"] = "Karmaşa yok. Yeteneğini paylaş, krediyi kazan, ihtiyacın olduğunda harca.",
@@ -273,7 +278,7 @@ public static class Translations
         ["auth.register.submit"] = "Kayıt ol",
         ["auth.register.submitting"] = "Oluşturuluyor…",
         ["auth.register.haveAccount"] = "Zaten hesabın var mı?",
-        ["auth.passwordHint"] = "En az 6 karakter, içinde en az 1 küçük harf ve 1 rakam olmalı.",
+        ["auth.passwordHint"] = "En az 8 karakter, içinde en az 1 küçük harf ve 1 rakam olmalı.",
         // email confirmation
         ["auth.checkEmail.title"] = "Gelen kutunu kontrol et",
         ["auth.checkEmail.sub"] = "{0} adresine bir doğrulama bağlantısı gönderdik.",
@@ -290,5 +295,8 @@ public static class Translations
         ["notfound.title"] = "Sayfa bulunamadı",
         ["notfound.body"] = "Aradığın içerik taşınmış ya da hiç var olmamış olabilir.",
         ["notfound.home"] = "Ana sayfaya dön",
+        // error ui
+        ["error.unexpected"] = "Beklenmeyen bir hata oluştu.",
+        ["error.reload"] = "Yeniden yükle",
     };
 }
