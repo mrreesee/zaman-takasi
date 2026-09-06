@@ -102,17 +102,24 @@ public sealed class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> ConfirmEmail(ConfirmEmailRequest req)
     {
         var user = await _users.FindByIdAsync(req.UserId.ToString());
-        if (user is null) return BadRequest("Geçersiz doğrulama bağlantısı.");
-
-        if (user.EmailConfirmed)
-        {
-            // Zaten doğrulanmış (linke ikinci tıklama) — hata verme, doğrudan giriş sağla.
-            return await IssueForConfirmedAsync(user);
-        }
+        if (user is null || string.IsNullOrWhiteSpace(req.Token))
+            return BadRequest("Geçersiz doğrulama bağlantısı.");
 
         string decodedToken;
         try { decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(req.Token)); }
         catch { return BadRequest("Geçersiz doğrulama bağlantısı."); }
+
+        // GÜVENLİK: Token HER DURUMDA doğrulanır — kullanıcı zaten onaylı olsa bile. Aksi halde
+        // userId (ilanlarda herkese açık) + rastgele token ile başkasının hesabına giriş yapılabilirdi.
+        if (user.EmailConfirmed)
+        {
+            // Linke ikinci tıklama: token hâlâ geçerliyse (ömrü dolmadıysa) hata verme, giriş sağla.
+            var stillValid = await _users.VerifyUserTokenAsync(
+                user, _users.Options.Tokens.EmailConfirmationTokenProvider, UserManager<ApplicationUser>.ConfirmEmailTokenPurpose, decodedToken);
+            if (!stillValid)
+                return BadRequest("Doğrulama bağlantısı geçersiz veya süresi dolmuş. Giriş yapmayı dene.");
+            return await IssueForConfirmedAsync(user);
+        }
 
         var result = await _users.ConfirmEmailAsync(user, decodedToken);
         if (!result.Succeeded)
