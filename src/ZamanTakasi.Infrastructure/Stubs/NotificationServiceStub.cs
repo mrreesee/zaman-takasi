@@ -34,6 +34,14 @@ public sealed class NotificationServiceStub : INotificationService
         return Task.CompletedTask;
     }
 
+    public Task SendPasswordResetAsync(string toEmail, string displayName, string resetUrl, string lang, CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "Bildirim (stub) parola sıfırlama: alıcı {Email} | dil {Lang} | bağlantı {ResetUrl}",
+            toEmail, lang, resetUrl);
+        return Task.CompletedTask;
+    }
+
     private Task LogPretend(string notification, Guid recipientUserId, Booking booking)
     {
         _logger.LogInformation(

@@ -47,16 +47,26 @@ public sealed class ResendNotificationService : INotificationService
         _logger = logger;
     }
 
-    public async Task SendEmailConfirmationAsync(string toEmail, string displayName, string confirmationUrl, string lang, CancellationToken ct = default)
+    public Task SendEmailConfirmationAsync(string toEmail, string displayName, string confirmationUrl, string lang, CancellationToken ct = default)
     {
         var (subject, html) = BuildConfirmationEmail(displayName, confirmationUrl, lang);
+        return SendAsync("Doğrulama", toEmail, confirmationUrl, subject, html, lang, ct);
+    }
 
+    public Task SendPasswordResetAsync(string toEmail, string displayName, string resetUrl, string lang, CancellationToken ct = default)
+    {
+        var (subject, html) = BuildPasswordResetEmail(displayName, resetUrl, lang);
+        return SendAsync("Parola sıfırlama", toEmail, resetUrl, subject, html, lang, ct);
+    }
+
+    private async Task SendAsync(string kind, string toEmail, string link, string subject, string html, string lang, CancellationToken ct)
+    {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
             // Resend kapalı: yerelde/henüz kurulmadıysa bağlantıyı logla (gerçek gönderim yok).
             _logger.LogWarning(
-                "Resend ApiKey yok — e-posta GÖNDERİLMEDİ. Doğrulama bağlantısı (dev): {Email} -> {ConfirmationUrl}",
-                toEmail, confirmationUrl);
+                "Resend ApiKey yok — e-posta GÖNDERİLMEDİ. {Kind} bağlantısı (dev): {Email} -> {Link}",
+                kind, toEmail, link);
             return;
         }
 
@@ -76,12 +86,12 @@ public sealed class ResendNotificationService : INotificationService
             var body = await res.Content.ReadAsStringAsync(ct);
             // Gönderim başarısız: kayıt akışını çökertme — logla, kullanıcı "tekrar gönder" ile deneyebilir.
             _logger.LogError(
-                "Resend e-posta gönderimi başarısız ({Status}) alıcı {Email}: {Body}",
-                (int)res.StatusCode, toEmail, body);
+                "Resend e-posta gönderimi başarısız ({Status}) {Kind} alıcı {Email}: {Body}",
+                (int)res.StatusCode, kind, toEmail, body);
             return;
         }
 
-        _logger.LogInformation("E-posta doğrulama gönderildi (Resend): {Email} | dil {Lang}", toEmail, lang);
+        _logger.LogInformation("{Kind} e-postası gönderildi (Resend): {Email} | dil {Lang}", kind, toEmail, lang);
     }
 
     // ---- Booking bildirimleri: şimdilik yalnızca structured log (gerçek e-posta sonraki iş) ----
@@ -102,25 +112,47 @@ public sealed class ResendNotificationService : INotificationService
         return Task.CompletedTask;
     }
 
-    /// <summary>İki dilli (EN/TR) doğrulama e-postası. Basit, inline-stilli HTML — e-posta istemcileri için güvenli.</summary>
+    /// <summary>İki dilli (EN/TR) doğrulama e-postası.</summary>
     private static (string Subject, string Html) BuildConfirmationEmail(string displayName, string url, string lang)
+    {
+        var tr = string.Equals(lang, "tr", StringComparison.OrdinalIgnoreCase);
+        return BuildEmail(displayName, url,
+            subject: tr ? "E-postanı doğrula — Zaman Takası" : "Confirm your email — Zaman Takası",
+            greetingTr: tr,
+            intro: tr
+                ? "Zaman Takası'na hoş geldin! Hesabını etkinleştirmek ve 3 ZK hoş geldin bakiyeni almak için e-postanı doğrula."
+                : "Welcome to Zaman Takası! Confirm your email to activate your account and receive your 3 ZK welcome balance.",
+            button: tr ? "E-postamı doğrula" : "Confirm my email",
+            ignore: tr
+                ? "Bu hesabı sen oluşturmadıysan bu e-postayı yok sayabilirsin."
+                : "If you didn't create this account, you can safely ignore this email.");
+    }
+
+    /// <summary>İki dilli (EN/TR) parola sıfırlama e-postası.</summary>
+    private static (string Subject, string Html) BuildPasswordResetEmail(string displayName, string url, string lang)
+    {
+        var tr = string.Equals(lang, "tr", StringComparison.OrdinalIgnoreCase);
+        return BuildEmail(displayName, url,
+            subject: tr ? "Parolanı sıfırla — Zaman Takası" : "Reset your password — Zaman Takası",
+            greetingTr: tr,
+            intro: tr
+                ? "Parolanı sıfırlamak için bir istek aldık. Yeni bir parola belirlemek için aşağıdaki butona tıkla. Bağlantı sınırlı bir süre geçerlidir."
+                : "We received a request to reset your password. Click the button below to choose a new one. The link is valid for a limited time.",
+            button: tr ? "Parolamı sıfırla" : "Reset my password",
+            ignore: tr
+                ? "Bu isteği sen yapmadıysan bu e-postayı yok sayabilirsin; parolan değişmez."
+                : "If you didn't request this, you can safely ignore this email; your password won't change.");
+    }
+
+    /// <summary>Basit, inline-stilli HTML — e-posta istemcileri için güvenli. Tüm dinamik değerler HTML-kaçışlı.</summary>
+    private static (string Subject, string Html) BuildEmail(string displayName, string url, string subject, bool greetingTr, string intro, string button, string ignore)
     {
         var name = System.Net.WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(displayName) ? "" : displayName);
         var safeUrl = System.Net.WebUtility.HtmlEncode(url);
-        var tr = string.Equals(lang, "tr", StringComparison.OrdinalIgnoreCase);
-
-        var subject = tr ? "E-postanı doğrula — Zaman Takası" : "Confirm your email — Zaman Takası";
-        var greeting = tr ? $"Merhaba {name}," : $"Hi {name},";
-        var intro = tr
-            ? "Zaman Takası'na hoş geldin! Hesabını etkinleştirmek ve 3 ZK hoş geldin bakiyeni almak için e-postanı doğrula."
-            : "Welcome to Zaman Takası! Confirm your email to activate your account and receive your 3 ZK welcome balance.";
-        var button = tr ? "E-postamı doğrula" : "Confirm my email";
-        var fallback = tr
+        var greeting = greetingTr ? $"Merhaba {name}," : $"Hi {name},";
+        var fallback = greetingTr
             ? "Buton çalışmazsa bu bağlantıyı tarayıcına yapıştır:"
             : "If the button doesn't work, paste this link into your browser:";
-        var ignore = tr
-            ? "Bu hesabı sen oluşturmadıysan bu e-postayı yok sayabilirsin."
-            : "If you didn't create this account, you can safely ignore this email.";
 
         var html = $@"<div style=""font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a"">
   <div style=""font-size:20px;font-weight:700;color:#0ea5b7;margin-bottom:16px"">Zaman Takası</div>

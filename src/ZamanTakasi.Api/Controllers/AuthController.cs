@@ -204,6 +204,70 @@ public sealed class AuthController : ControllerBase
         return Ok(); // her durumda 200
     }
 
+    /// <summary>"Parolamı unuttum": bağlantı e-postayla gider. Hesap varlığını sızdırmamak için cevap her zaman 200.</summary>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Email)) return Ok();
+
+        if (!_throttle.TryAcquire(AuthThrottle.EmailKey("pwreset", req.Email), ResendPerEmailPerWindow, ResendWindow)
+            || !_throttle.TryAcquire("pwreset:global", ResendGlobalPerWindow, HourWindow))
+        {
+            _logger.LogWarning("Parola sıfırlama eşiği aşıldı; gönderim atlandı.");
+            return Ok();
+        }
+
+        var user = await _users.FindByEmailAsync(req.Email);
+        if (user is not null)
+        {
+            var domainUser = await _db.DomainUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
+            var rawToken = await _users.GeneratePasswordResetTokenAsync(user);
+            var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(rawToken));
+            var publicUrl = (_config["App:PublicUrl"] ?? "").TrimEnd('/');
+            var url = $"{publicUrl}/reset-password?userId={user.Id}&token={encoded}&lang={Uri.EscapeDataString(req.Lang)}";
+            await _notifications.SendPasswordResetAsync(user.Email!, domainUser?.DisplayName ?? user.Email!, url, req.Lang);
+        }
+        return Ok(); // her durumda 200
+    }
+
+    /// <summary>Sıfırlama bağlantısındaki token ile yeni parola. Başarıda kilit/hatalı sayaç sıfırlanır; token tek kullanımlıktır.</summary>
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Token) || string.IsNullOrWhiteSpace(req.NewPassword))
+            return BadRequest("Geçersiz sıfırlama bağlantısı.");
+
+        var user = await _users.FindByIdAsync(req.UserId.ToString());
+        if (user is null) return BadRequest("Geçersiz sıfırlama bağlantısı.");
+
+        string decodedToken;
+        try { decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(req.Token)); }
+        catch { return BadRequest("Geçersiz sıfırlama bağlantısı."); }
+
+        var result = await _users.ResetPasswordAsync(user, decodedToken, req.NewPassword);
+        if (!result.Succeeded)
+        {
+            // Token hatası ile parola politikası hatasını ayır: politika mesajı kullanıcıya faydalı, token mesajı tek tip.
+            var policyErrors = result.Errors.Where(e => e.Code.StartsWith("Password", StringComparison.Ordinal)).ToList();
+            if (policyErrors.Count > 0)
+                return BadRequest(string.Join("; ", policyErrors.Select(e => e.Description)));
+            return BadRequest("Sıfırlama bağlantısı geçersiz veya süresi dolmuş. Yeni bir bağlantı iste.");
+        }
+
+        // Parola e-posta üzerinden sıfırlandı => e-posta sahipliği kanıtlandı. Kilidi ve hatalı sayacı temizle.
+        await _users.SetLockoutEndDateAsync(user, null);
+        await _users.ResetAccessFailedCountAsync(user);
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            await _users.UpdateAsync(user);
+            await _welcome.GrantIfFirstTimeAsync(user.Id);
+        }
+
+        _logger.LogInformation("Parola sıfırlandı: kullanıcı {UserId}", user.Id);
+        return Ok();
+    }
+
     private async Task<ActionResult<AuthResponse>> IssueForConfirmedAsync(ApplicationUser user)
     {
         var domainUser = await _db.DomainUsers.FirstOrDefaultAsync(u => u.Id == user.Id);

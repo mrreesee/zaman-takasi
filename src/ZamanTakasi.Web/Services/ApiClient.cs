@@ -28,6 +28,8 @@ public sealed class ApiClient
     public Task<AuthResponse?> LoginAsync(LoginRequest r) => SendAsync<AuthResponse>(HttpMethod.Post, "api/auth/login", r);
     public Task<AuthResponse?> ConfirmEmailAsync(ConfirmEmailRequest r) => SendAsync<AuthResponse>(HttpMethod.Post, "api/auth/confirm-email", r);
     public Task ResendConfirmationAsync(ResendConfirmationRequest r) => SendAsync<object>(HttpMethod.Post, "api/auth/resend-confirmation", r);
+    public Task ForgotPasswordAsync(ForgotPasswordRequest r) => SendAsync<object>(HttpMethod.Post, "api/auth/forgot-password", r);
+    public Task ResetPasswordAsync(ResetPasswordRequest r) => SendAsync<object>(HttpMethod.Post, "api/auth/reset-password", r);
 
     // ---- Listings ----
     public Task<List<ListingDto>?> GetListingsAsync() => SendAsync<List<ListingDto>>(HttpMethod.Get, "api/listings");

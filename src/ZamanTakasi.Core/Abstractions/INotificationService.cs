@@ -30,7 +30,9 @@ public interface INotificationService
     /// </summary>
     Task SendEmailConfirmationAsync(string toEmail, string displayName, string confirmationUrl, string lang, CancellationToken ct = default);
 
-    // TODO: password reset — Identity şifre sıfırlama akışı için buraya
-    // SendPasswordResetAsync(Guid userId, string resetToken, CancellationToken ct = default) eklenecek.
-    // Mevcut booking çağrıları etkilenmeden eklenebilir (arayüz olay-özgü olduğu için).
+    /// <summary>
+    /// Parola sıfırlama bağlantısını gönderir. <paramref name="resetUrl"/> API tarafında (App:PublicUrl + token)
+    /// tam olarak kurulur; gönderici yalnızca iletir. <paramref name="lang"/> "en"/"tr".
+    /// </summary>
+    Task SendPasswordResetAsync(string toEmail, string displayName, string resetUrl, string lang, CancellationToken ct = default);
 }

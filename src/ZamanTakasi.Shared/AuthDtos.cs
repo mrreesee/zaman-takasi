@@ -20,3 +20,9 @@ public record ConfirmEmailRequest(Guid UserId, string Token);
 
 /// <summary>Doğrulama e-postasını yeniden gönderme isteği. Cevap her zaman 200 (hesap varlığını sızdırmaz).</summary>
 public record ResendConfirmationRequest(string Email, string Lang = "en");
+
+/// <summary>"Parolamı unuttum": e-postaya sıfırlama bağlantısı ister. Cevap her zaman 200 (hesap varlığını sızdırmaz).</summary>
+public record ForgotPasswordRequest(string Email, string Lang = "en");
+
+/// <summary>Sıfırlama bağlantısındaki userId + token ile yeni parola belirleme.</summary>
+public record ResetPasswordRequest(Guid UserId, string Token, string NewPassword);
