@@ -20,7 +20,7 @@
         </div>
         <div class="zk-field">
             <label>@L["auth.password"]</label>
-            <input class="form-control" type="password" @bind="password" @bind:event="oninput" @onkeydown="OnKey" placeholder="••••••••" />
+            <PasswordInput @bind-Value="password" OnEnter="Submit" AutoComplete="current-password" />
         </div>
 
         <button class="zk-btn zk-btn-primary zk-block" @onclick="Submit" disabled="@busy">
@@ -62,13 +62,9 @@
     private bool showResend;
     private bool resendSent;
 
-    private async Task OnKey(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await Submit();
-    }
-
     private async Task Submit()
     {
+        if (busy) return;
         error = null; showResend = false; resendSent = false; busy = true;
         try
         {

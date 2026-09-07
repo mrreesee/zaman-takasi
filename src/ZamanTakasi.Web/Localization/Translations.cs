@@ -31,6 +31,8 @@ public static class Translations
         ["nav.login"] = "Sign in",
         ["nav.register"] = "Sign up",
         ["nav.logout"] = "Sign out",
+        ["nav.menu"] = "Menu",
+        ["nav.primary"] = "Main navigation",
         // footer
         ["footer.tagline"] = "A community marketplace that turns your time into time, not money. Credits are closed-loop — they can't be converted to cash.",
         ["footer.explore"] = "Explore",
@@ -178,6 +180,15 @@ public static class Translations
         // error ui
         ["error.unexpected"] = "An unexpected error occurred.",
         ["error.reload"] = "Reload",
+        ["error.title"] = "Something went wrong",
+        ["error.body"] = "We hit an unexpected problem while processing your request. Please try again in a moment.",
+        ["error.requestId"] = "Request ID",
+        // a11y / forms
+        ["auth.showPassword"] = "Show password",
+        ["auth.hidePassword"] = "Hide password",
+        ["listings.lessHours"] = "Decrease hours",
+        ["listings.moreHours"] = "Increase hours",
+        ["listings.emptyCtaSignUp"] = "Create an account and post the first listing",
     };
 
     // ---- Türkçe ----
@@ -191,7 +202,9 @@ public static class Translations
         ["nav.wallet"] = "Cüzdan",
         ["nav.login"] = "Giriş",
         ["nav.register"] = "Kayıt ol",
-        ["nav.logout"] = "Çıkış",
+        ["nav.logout"] = "Çıkış yap",
+        ["nav.menu"] = "Menü",
+        ["nav.primary"] = "Ana gezinme",
         ["footer.tagline"] = "Zamanını paraya değil, zamana çeviren topluluk pazarı. Krediler kapalı devredir — nakit/TL'ye çevrilemez.",
         ["footer.explore"] = "Keşfet",
         ["footer.account"] = "Hesap",
@@ -334,5 +347,14 @@ public static class Translations
         // error ui
         ["error.unexpected"] = "Beklenmeyen bir hata oluştu.",
         ["error.reload"] = "Yeniden yükle",
+        ["error.title"] = "Bir şeyler ters gitti",
+        ["error.body"] = "İsteğini işlerken beklenmedik bir sorunla karşılaştık. Lütfen biraz sonra tekrar dene.",
+        ["error.requestId"] = "İstek kimliği",
+        // a11y / forms
+        ["auth.showPassword"] = "Parolayı göster",
+        ["auth.hidePassword"] = "Parolayı gizle",
+        ["listings.lessHours"] = "Saati azalt",
+        ["listings.moreHours"] = "Saati artır",
+        ["listings.emptyCtaSignUp"] = "Hesap aç ve ilk ilanı sen ver",
     };
 }

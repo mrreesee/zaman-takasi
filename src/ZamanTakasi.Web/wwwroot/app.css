@@ -414,12 +414,16 @@ h1:focus { outline: none; }
    Responsive
    ============================================================ */
 @media (max-width: 820px) {
+    .zk-nav-inner { height: 64px; padding: 0 16px; gap: 10px; }
+    .zk-nav-cta { gap: 8px; }
+    .zk-nav-cta .zk-btn { white-space: nowrap; }
+    .zk-brand { font-size: 18px; white-space: nowrap; }
     .zk-nav-links { display: none; }
     .zk-nav-links.open {
         display: flex;
         flex-direction: column;
         position: absolute;
-        top: 72px; left: 0; right: 0;
+        top: 64px; left: 0; right: 0;
         background: var(--zk-bg);
         border-bottom: 1px solid var(--zk-border);
         margin: 0;
@@ -435,7 +439,37 @@ h1:focus { outline: none; }
     .zk-hero h1 { font-size: 40px !important; }
     .zk-steps, .zk-tiers, .zk-footer-grid { grid-template-columns: 1fr !important; }
     .zk-section-head h2 { font-size: 30px !important; }
+    .zk-section { padding: 56px 0; }
 }
+
+/* Dar telefonlar: dil düğmesi yalnızca ikon, marka yalnızca logo */
+@media (max-width: 480px) {
+    .zk-lang { padding: 7px 9px; }
+    .zk-lang-txt { display: none; }
+    .zk-brand span { display: none; }
+    .zk-balance-pill { display: none; }
+    .zk-hero h1 { font-size: 34px !important; }
+    .zk-hero-lead { font-size: 16.5px; }
+    .zk-auth-card { padding: 26px 20px; }
+    .zk-page-head h1 { font-size: 26px; }
+}
+
+/* Parola alanı: göster/gizle */
+.zk-pw { position: relative; }
+.zk-pw .form-control { padding-right: 44px; }
+.zk-pw-toggle {
+    position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+    width: 34px; height: 34px; border: none; background: transparent;
+    color: var(--zk-muted); border-radius: var(--zk-r-sm); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.zk-pw-toggle:hover { color: var(--zk-cyan-dark); background: var(--zk-cyan-tint); }
+
+/* Boş durum kartı + eylem */
+.zk-empty-card { text-align: center; padding: 40px 24px; }
+.zk-empty-card i.zk-empty-ic { font-size: 36px; color: var(--zk-muted); }
+.zk-empty-card p { margin: 12px 0 0; color: var(--zk-muted); }
+.zk-empty-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
 
 /* ============================================================
    Footer

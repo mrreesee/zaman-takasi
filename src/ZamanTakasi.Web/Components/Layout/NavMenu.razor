@@ -8,7 +8,7 @@
     <div class="zk-nav-inner">
         <BrandLogo Href="" Size="38" />
 
-        <nav class="zk-nav-links @(menuOpen ? "open" : null)" @onclick="CloseMenu">
+        <nav id="zk-mobile-nav" class="zk-nav-links @(menuOpen ? "open" : null)" @onclick="CloseMenu" aria-label="@L["nav.primary"]">
             <NavLink href="" Match="NavLinkMatch.All">@L["nav.home"]</NavLink>
             <NavLink href="listings">@L["nav.listings"]</NavLink>
             <NavLink href="bookings">@L["nav.bookings"]</NavLink>
@@ -16,8 +16,8 @@
         </nav>
 
         <div class="zk-nav-cta">
-            <button class="zk-lang" @onclick="SwitchLang" title="@L["lang.switchTo"]">
-                <i class="ti ti-world"></i> @L["lang.switchTo"]
+            <button class="zk-lang" @onclick="SwitchLang" title="@L["lang.switchTo"]" aria-label="@L["lang.switchTo"]">
+                <i class="ti ti-world" aria-hidden="true"></i> <span class="zk-lang-txt">@L["lang.switchTo"]</span>
             </button>
 
             @if (Auth.IsAuthenticated)
@@ -42,8 +42,8 @@
                 <a href="login" class="zk-btn zk-btn-primary zk-btn-sm">@L["nav.login"]</a>
             }
 
-            <button class="zk-nav-toggle" @onclick="ToggleMenu" aria-label="Menu">
-                <i class="ti ti-menu-2"></i>
+            <button class="zk-nav-toggle" @onclick="ToggleMenu" aria-label="@L["nav.menu"]" aria-expanded="@(menuOpen ? "true" : "false")" aria-controls="zk-mobile-nav">
+                <i class="ti @(menuOpen ? "ti-x" : "ti-menu-2")" aria-hidden="true"></i>
             </button>
         </div>
     </div>

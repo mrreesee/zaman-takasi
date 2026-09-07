@@ -24,7 +24,7 @@
         </div>
         <div class="zk-field">
             <label>@L["auth.password"]</label>
-            <input class="form-control" type="password" @bind="password" @bind:event="oninput" placeholder="••••••••" />
+            <PasswordInput @bind-Value="password" OnEnter="Submit" AutoComplete="new-password" />
             <small style="display:block; margin-top:6px; color:var(--zk-muted); font-size:12.5px;">
                 <i class="ti ti-info-circle"></i> @L["auth.passwordHint"]
             </small>
@@ -49,6 +49,7 @@
 
     private async Task Submit()
     {
+        if (busy) return;
         error = null; busy = true;
         try
         {

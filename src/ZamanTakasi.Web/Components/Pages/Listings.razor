@@ -60,9 +60,20 @@ else if (!Auth.IsAuthenticated)
 }
 else if (listings.Count == 0)
 {
-    <div class="zk-card zk-mt" style="text-align:center; padding:40px;">
-        <i class="ti ti-clipboard-off" style="font-size:36px; color:var(--zk-muted);"></i>
-        <p style="margin:12px 0 0; color:var(--zk-muted);">@L["listings.empty"]</p>
+    <div class="zk-card zk-mt zk-empty-card">
+        <i class="ti ti-clipboard-off zk-empty-ic"></i>
+        <p>@L["listings.empty"]</p>
+        <div class="zk-empty-actions">
+            @if (Auth.IsAuthenticated)
+            {
+                <button class="zk-btn zk-btn-primary" @onclick="() => { showNewForm = true; }"><i class="ti ti-plus"></i> @L["listings.new"]</button>
+            }
+            else
+            {
+                <a class="zk-btn zk-btn-primary" href="register"><i class="ti ti-user-plus"></i> @L["listings.emptyCtaSignUp"]</a>
+                <a class="zk-btn zk-btn-ghost" href="/#nasil-calisir"><i class="ti ti-player-play"></i> @L["home.cta.how"]</a>
+            }
+        </div>
     </div>
 }
 else
@@ -111,9 +122,9 @@ else
                         {
                             <div style="display:flex; align-items:center; gap:9px;">
                                 <div class="zk-stepper">
-                                    <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="-">−</button>
-                                    <span class="zk-stepper-val">@FormatHours(hours[l.Id])@L["common.hourShort"]</span>
-                                    <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="+">+</button>
+                                    <button @onclick="() => AdjustHours(l.Id, -0.5m)" aria-label="@L["listings.lessHours"]" title="@L["listings.lessHours"]">−</button>
+                                    <span class="zk-stepper-val" aria-live="polite">@FormatHours(hours[l.Id])@L["common.hourShort"]</span>
+                                    <button @onclick="() => AdjustHours(l.Id, 0.5m)" aria-label="@L["listings.moreHours"]" title="@L["listings.moreHours"]">+</button>
                                 </div>
                                 <button class="zk-btn zk-btn-primary zk-btn-sm" @onclick="() => Book(l)">@L["listings.book"]</button>
                             </div>
